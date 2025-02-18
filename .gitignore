@@ -1,5 +1,10 @@
 # ./
-./build/
+*.exp
+*.lib
+*.obj
+*.exe
+
+build/
 
 # Compiled class file
 *.class

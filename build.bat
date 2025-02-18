@@ -3,5 +3,5 @@ IF "%1" == "C" (
         cl /Febuild\ /Fobuild\ /Fdbuild\ /I"C:\Program Files\jdk-23.0.2\include" /I"C:\Program Files\jdk-23.0.2\include\win32" /LD shared_map.c Kernel32.lib
 )
 
-cp build\shared_map.dll lib\shared_map.dll
+copy /Y build\shared_map.dll lib\shared_map.dll
 javac SharedMemory.java -d build
