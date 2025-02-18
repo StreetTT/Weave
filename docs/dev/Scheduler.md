@@ -1,5 +1,5 @@
 # Proposed Shceduler Interface 
-Shceduler keeps an 2 arrays of for the number of blocks 256*1024 of 2 values the Process Id and its value on the time axis
+Shceduler keeps an array for the number of blocks 256*1024
 The frontend is responsible for updating values as blocks and processes are reorderedd
 
 # Scheduler Run 
