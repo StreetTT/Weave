@@ -15,7 +15,10 @@ public class SharedMemory {
     static public native void WaitForMutex(long mutex);
     static public native long CreateProcess(String process);
     static public native long CreateMutex();
-    static public native void WaitForMultipleMutex(long mutexArr[], int count);
+    static public native void WaitForMultipleMutex(long mutexArr[], int count); 
+
+    //Make class impossible to instantiate
+    private SharedMemory() {};
 
     static {
         System.loadLibrary("lib/shared_map");
