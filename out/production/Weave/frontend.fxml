@@ -12,17 +12,27 @@
               <menus>
                 <Menu mnemonicParsing="false" text="File">
                   <items>
-                    <MenuItem mnemonicParsing="false" text="Edit" />
+                      <MenuItem mnemonicParsing="false" text="Create new project" />
+                      <MenuItem mnemonicParsing="false" text="Add new python file" />
+                      <MenuItem mnemonicParsing="false" text="Save project" />
+                      <MenuItem mnemonicParsing="false" text="Save project as" />
+                      <MenuItem mnemonicParsing="false" text="Recent projects" />
+                      <MenuItem mnemonicParsing="false" text="Export current project" />
                   </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Edit">
                   <items>
-                    <MenuItem mnemonicParsing="false" text="Run" />
+                      <MenuItem mnemonicParsing="false" text="Find python file" />
+                      <MenuItem mnemonicParsing="false" text="Copy python file" />
+                      <MenuItem mnemonicParsing="false" text="Paste python file" />
+                      <MenuItem mnemonicParsing="false" text="Select all files" />
+                      <MenuItem mnemonicParsing="false" text="Move selected file to" />
                   </items>
                 </Menu>
-                <Menu mnemonicParsing="false" text="Help">
+                <Menu mnemonicParsing="false" text="Run">
                   <items>
-                    <MenuItem mnemonicParsing="false" text="About" />
+                      <MenuItem mnemonicParsing="false" text="Run all" />
+                      <MenuItem mnemonicParsing="false" text="Run Selected" />
                   </items>
                 </Menu>
               </menus>
