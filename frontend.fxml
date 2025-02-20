@@ -3,10 +3,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Frontend">
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="FrontendController">
    <children>
-      <BorderPane layoutX="-1.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" prefHeight="400.0" prefWidth="600.0">
+      <BorderPane layoutX="-1.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
          <top>
             <MenuBar BorderPane.alignment="CENTER">
               <menus>
@@ -38,6 +37,13 @@
               </menus>
             </MenuBar>
          </top>
+         <center>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER" fx:id="processContainer">
+               <children>
+                  <Button mnemonicParsing="false" text="New PBlock" onAction="#addBlock"/>
+               </children>
+            </HBox>
+         </center>
       </BorderPane>
    </children>
 </AnchorPane>
