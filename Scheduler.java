@@ -59,8 +59,7 @@ public class Scheduler {
 
     public int schedulerAddProcess(String filename) {
         int pid = this.numProcesses++;  // get the PID
-        this.process_names[id] = filename;
-
+        this.process_filenames[pid] = filename;
         return pid;
     }
 }

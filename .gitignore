@@ -5,6 +5,9 @@
 *.exe
 
 build/
+.vscode/
+.idea
+*.iml
 
 # Compiled class file
 *.class
