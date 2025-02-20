@@ -5,7 +5,7 @@ IF "%1" == "C" (
         copy /Y build\shared_map.dll lib\shared_map.dll
 )
 
-set java_module_paths=".\lib\javafx-sdk-21.0.6\lib"
+set java_module_paths=".\lib\win64\javafx-sdk-21.0.6\lib"
 set java_modules=javafx.base,javafx.controls,javafx.fxml
 
 
