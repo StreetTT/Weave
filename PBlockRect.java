@@ -4,25 +4,22 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 public class PBlockRect extends Rectangle {
-    private boolean popup = false;
+    private PopupEditor editor;
 
     public PBlockRect(double v, double v1) {
         super(v, v1);
         setFill(Color.LIGHTGRAY);
 
-        setOnMousePressed(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent mouseEvent) {
-                if (mouseEvent.getClickCount() == 2 && !popup) {
-                    popup = true;
-                    PopupEditor.showPopup();
-                }
-            }
-        });
+        setOnMousePressed(this::handleClick);
     }
 
-    private void HandleClick(MouseEvent e) {
-        setFill(Color.DARKGRAY);
+    private void handleClick(MouseEvent mouseEvent) {
+        if (mouseEvent.getClickCount() == 2) {
+            if (this.editor == null) {
+                this.editor = new PopupEditor();
+            }
 
+            editor.showPopup();
+        }
     }
 }

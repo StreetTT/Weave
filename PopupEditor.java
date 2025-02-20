@@ -4,18 +4,33 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 public class PopupEditor {
-    public static void showPopup() {
-        Stage stage = new Stage();
-        stage.setTitle("Popup Edito");
+    private boolean showing;
+    private Stage currStage;
 
-        // make sure window doesn't block application events
-        stage.initModality(Modality.NONE);
+    public PopupEditor() {
+        this.showing = false;
+    }
 
-        //TODO(Ray) implement loading of processfile blocks into text field
-        TextArea textarea = new TextArea("DEFAULT TEXT");
-        Scene scene = new Scene(textarea, 300, 200);
-        stage.setScene(scene);
+    public void showPopup() {
+        if (!showing) {
+            this.showing = true;
+            this.currStage = new Stage();
+            currStage.setTitle("Popup Edito");
 
-        stage.showAndWait(); // Show popup and wait until it's closed
+            // make sure window doesn't block application events
+            currStage.initModality(Modality.NONE);
+
+            //TODO(Ray) implement loading of process file blocks into text field
+            TextArea textarea = new TextArea("DEFAULT TEXT");
+            Scene scene = new Scene(textarea, 300, 200);
+            currStage.setScene(scene);
+
+            // set showing to false when window closes
+            currStage.setOnCloseRequest(event -> this.showing = false);
+            currStage.showAndWait();
+        } else {
+            // just change window focus back to popup if already open
+            currStage.requestFocus();
+        }
     }
 }
