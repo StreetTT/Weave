@@ -30,7 +30,6 @@ public class Frontend extends Application {
         for (int row = 0; row < MAX_PROCESSES; ++row) {
             for (int col = 0; col < BLOCKS_PER_PROCESS; ++col) {
                 if (row % 2 == 0 && col % 2 == 0) {
-
                     Rectangle code_block = new Rectangle(200, 200);
                     code_block.setFill(Color.LIGHTGRAY);
                     code_block.setOnMouseClicked(event -> code_block.setFill(Color.BLACK));

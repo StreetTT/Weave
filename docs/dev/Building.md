@@ -9,7 +9,7 @@ if you want to debug in InteliJ. Open the Project in IntelliJ Goto:
 
 Run/Debug Configurations -> Modify Options -> Click Add VM Options and paste in the following
 
-`--module-path ".\lib\javafx-sdk-21.0.6\lib" --add-modules javafx.base,javafx.controls,javafx.fxml`
+`--module-path ".\lib\win64\javafx-sdk-21.0.6\lib" --add-modules javafx.base,javafx.controls,javafx.fxml`
 
 ## Using Vscode
 if you want to use VSCode. Open The Project navtigate to or create `.vscode/launch.json`
@@ -24,7 +24,7 @@ paste the following into the file
             "request": "launch",
             "mainClass": "Frontend",
             "projectName": "Weave_24f94098",
-            "vmArgs": "--module-path \".\\lib\\javafx-sdk-21.0.6\\lib\" --add-modules javafx.base,javafx.controls,javafx.fxml",
+            "vmArgs": "--module-path \".\\lib\\win64\\javafx-sdk-21.0.6\\lib\" --add-modules javafx.base,javafx.controls,javafx.fxml",
         },
 
         {
