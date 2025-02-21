@@ -4,19 +4,25 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 public class PBlockRect extends Rectangle {
+    private int pid;
+    private int block;
     private PopupEditor editor;
 
-    public PBlockRect(double v, double v1) {
+    public PBlockRect(int pid, int block, double v, double v1) {
         super(v, v1);
-        setFill(Color.LIGHTGRAY);
+        this.pid = pid;
 
+        setFill(Color.LIGHTGRAY);
         setOnMousePressed(this::handleClick);
+        Scheduler scheduler = Scheduler.Scheduler();
     }
 
     private void handleClick(MouseEvent mouseEvent) {
         if (mouseEvent.getClickCount() == 2) {
             if (this.editor == null) {
-                this.editor = new PopupEditor();
+                Scheduler s = Scheduler.Scheduler();
+                int block = s.addProcessBlock(this.pid);
+                this.editor = new PopupEditor(s.getBlockInitialContents(block));
             }
 
             editor.showPopup();

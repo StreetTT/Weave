@@ -8,8 +8,11 @@ public class Frontend extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("/frontend.fxml"));
-
+        Parent root = FXMLLoader.load(getClass().getResource("frontend.fxml"));
+        Scheduler scheduler = Scheduler.Scheduler();
+        scheduler.projectDir = "testproj";
+        scheduler.projectName = "TEST_PROJ";
+        int process1 = scheduler.addProcess();
         primaryStage.setTitle("Weave");
         Scene scene = new Scene(root, 1280, 720);
 
