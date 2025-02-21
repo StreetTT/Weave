@@ -9,7 +9,8 @@ public class Frontend extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("frontend.fxml"));
-        Scheduler scheduler = Scheduler.Scheduler();
+        Scheduler scheduler = Scheduler.Scheduler(); // Please always do this at application start
+
         scheduler.projectDir = "testproj";
         scheduler.projectName = "TEST_PROJ";
         int process1 = scheduler.addProcess();
@@ -22,6 +23,8 @@ public class Frontend extends Application {
 
         primaryStage.heightProperty().addListener((obs, oldVal, newVal) ->
                 scene.getWindow().setHeight(newVal.doubleValue()));
+
+        primaryStage.setOnCloseRequest(event -> Scheduler.Scheduler().writeProcessesToDisk());
 
         primaryStage.setScene(scene);
         primaryStage.show();

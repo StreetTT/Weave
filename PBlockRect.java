@@ -14,15 +14,14 @@ public class PBlockRect extends Rectangle {
 
         setFill(Color.LIGHTGRAY);
         setOnMousePressed(this::handleClick);
-        Scheduler scheduler = Scheduler.Scheduler();
+        this.block = Scheduler.Scheduler().addProcessBlock(this.pid);
     }
 
     private void handleClick(MouseEvent mouseEvent) {
         if (mouseEvent.getClickCount() == 2) {
             if (this.editor == null) {
                 Scheduler s = Scheduler.Scheduler();
-                int block = s.addProcessBlock(this.pid);
-                this.editor = new PopupEditor(s.getBlockInitialContents(block));
+                this.editor = new PopupEditor(this.block, s.getBlockContents(block));
             }
 
             editor.showPopup();
