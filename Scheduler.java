@@ -20,8 +20,10 @@ public class Scheduler {
 
     public String projectName;
     public String projectDir;
-    public int[] blocksFileStartIdx;
-    public int[] blocksFileEndIdx;
+
+    private int[] blocksFileStartIdx;
+    private int[] blocksFileEndIdx;
+    private StringBuilder blocksFileContents[];
 
     //NOTE:(Ray) All attributes are allocated as an array to keep data together for bulk processing.
     // A pid (ProcessId) is just an index into anyone of these arrays
@@ -29,7 +31,7 @@ public class Scheduler {
     // pid=0 is always reserved for invalid processes
 
     public String[] processFilenames;
-    public StringBuilder[] processFileContents;
+    public StringBuilder[] processFileContents; //NOTE(Ray): Maybe this are redundant
     public int[] processBlockCount;
 
     private int numProcesses = 1;
@@ -46,12 +48,14 @@ public class Scheduler {
         this.signalBuffer = SharedMemory.GetSignalArray();
 
         this.processFilenames = new String[256];
-        this.processFileContents = new StringBuilder[256]; //NOTE(Ray): Maybe These are redundant
+        this.processFileContents = new StringBuilder[256];
 
         // Process Block arrays
         this.processBlockCount = new int[256];
         this.blocksFileStartIdx = new int[MAX_BLOCKS];
         this.blocksFileEndIdx = new int[MAX_BLOCKS];
+
+        this.blocksFileContents = new StringBuilder[MAX_BLOCKS];
 
         //TODO(Ray) eventually serialise block pids and times from file
     }
@@ -68,18 +72,6 @@ public class Scheduler {
 
     public void runProcesses() {
         //TODO(Ray) implement scheduling algorithm
-        //
-        // 0 is invalid process id and should be skipped all process blocks will be time orderd and
-        // tagged with their position along the time axis
-        // [0, 0, 1, 2] would be 1 process that is invalid, and a second process with ID 1 at position 2 on the time axis
-        //
-        //
-        //
-        //
-        //  TIME INDEXED ARRAY WHERE EACH OF THE 1024 TIME SLOTS HAS 256 PROCESS SLOTS all vailid pids at index 0-256
-        //  run first and then must wait for the next time block so on and so on
-        //  MAYBE TREAT PROCESSES AS ENTITIES GIVE THEM UI_X AND UI_Y FOR RENDERING STORE THEIR IDS
-        //
     }
 
     public int addProcess() {
@@ -110,20 +102,24 @@ public class Scheduler {
     }
 
     public int addProcessBlock(int pid) {
-        StringBuilder blockString = new StringBuilder("def ");
-        blockString.append(projectName);
-        blockString.append("_block_1:\n");
-
         int blockIdx = this.processBlockCount[pid] + (pid * MAX_PROCESSES);
-        this.blocksFileStartIdx[blockIdx] = blockString.length() - 1;
-        this.blocksFileEndIdx[blockIdx] = blockString.length() - 1;
+
+        this.blocksFileContents[blockIdx] = new StringBuilder("def ");
+        this.blocksFileContents[blockIdx].append(projectName);
+        this.blocksFileContents[blockIdx].append("_block_1:\n");
+
+        // When we implement loading and restoring these should be pulled from files
+        this.blocksFileStartIdx[blockIdx] = this.blocksFileContents[blockIdx].length() - 1;
+        this.blocksFileEndIdx[blockIdx] = this.blocksFileContents[blockIdx].length() - 1;
+
+
+        // should be a preprocessing step to get rid of indentation
 
         return blockIdx;
     }
 
     public String getBlockInitialContents(int block) {
-        int pid = block / MAX_PROCESSES;
-        return this.processFileContents[pid].substring(this.blocksFileStartIdx[block], this.blocksFileEndIdx[block]);
+        return this.blocksFileContents[block].substring(this.blocksFileStartIdx[block], this.blocksFileEndIdx[block]);
     }
 
     public static void main(String args[]) {

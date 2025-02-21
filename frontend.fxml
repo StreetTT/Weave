@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
@@ -37,13 +38,20 @@
               </menus>
             </MenuBar>
          </top>
-         <center>
-            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER" fx:id="processContainer">
+         <left>
+            <HBox fx:id="processContainer" alignment="CENTER_LEFT" fillHeight="false" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER_LEFT">
+               <BorderPane.margin>
+                  <Insets />
+               </BorderPane.margin>
                <children>
-                  <Button mnemonicParsing="false" text="New PBlock" onAction="#addBlock"/>
+                  <Region fx:id="spacer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="12.0" prefWidth="9.0" HBox.hgrow="ALWAYS">
+                     <HBox.margin>
+                        <Insets right="20.0" />
+                     </HBox.margin></Region>
+                  <Button fx:id="newBlockButton" mnemonicParsing="false" onAction="#addBlock" text="Add Block" />
                </children>
             </HBox>
-         </center>
+         </left>
       </BorderPane>
    </children>
 </AnchorPane>
