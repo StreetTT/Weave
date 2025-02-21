@@ -31,12 +31,16 @@ public class SharedMemory {
         ByteBuffer signalArray = SharedMemory.GetSignalArray();
 
         System.out.println(sharedMutexBuff.get(0));
+        System.out.println(sharedMutexBuff.get(1));
 
         SharedMemory.WaitForMutex(sharedMutexBuff.get(0));
         SharedMemory.WaitForMutex(sharedMutexBuff.get(1));
 
-        long p1 = SharedMemory.CreateProcess("python program1.py");
-        long p2 = SharedMemory.CreateProcess("python program2.py");
+        long p1 = SharedMemory.CreateProcess("python testproj/program1.py");
+        long p2 = SharedMemory.CreateProcess("python testproj/program2.py");
+
+        System.out.println(signalArray.get(0));
+        System.out.println(signalArray.get(1));
 
         SharedMemory.ReleaseMutex(sharedMutexBuff.get(0));
         SharedMemory.ReleaseMutex(sharedMutexBuff.get(1));
@@ -45,6 +49,9 @@ public class SharedMemory {
         while (signalArray.get(0) == 0 || signalArray.get(1) == 0) {
             continue;
         }
+
+        System.out.println(signalArray.get(0));
+        System.out.println(signalArray.get(1));
 
         SharedMemory.WaitForMultipleMutex(new long[] {sharedMutexBuff.get(0), 
                 sharedMutexBuff.get(1)}, 2);

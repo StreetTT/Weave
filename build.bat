@@ -9,7 +9,7 @@ set java_module_paths=".\lib\win64\javafx-sdk-21.0.6\lib"
 set java_modules=javafx.base,javafx.controls,javafx.fxml
 
 
-call javac --module-path %java_module_paths% --add-modules %java_modules% Frontend.java -d build 
+call javac --module-path %java_module_paths% --add-modules %java_modules% *.java -d build
 
 IF NOT %ERRORLEVEL% == 0 (
     echo "Error in Build Aborting..."

@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <Windows.h>
 
-#define MAX_PROCESSES (255)
+#define MAX_PROCESSES (256)
 #define EXPORT __declspec(dllexport)
 
 
