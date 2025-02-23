@@ -24,6 +24,7 @@ public class SharedMemory {
         System.loadLibrary("lib/shared_map");
     }
 
+    //TODO(Ray): Convert this into a more general Run function inside the scheduler
     public static void main(String args[]) {
         SharedMemory.AlocWeaveSharedBuffer();
 

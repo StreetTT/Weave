@@ -8,6 +8,9 @@ import javafx.scene.layout.StackPane;
 // NOTE:(Ray) Maybe take the new classes for PBlockRect and PopupEditor and move them into jxml styles
 //  and port the existing classes to controllers????
 
+//TODO:(Ray) Frontend needs to be in charge of the 256x1024 grid layout for all the blocks and processes
+// Scheduler doesn't really care too much about what processes are where
+
 //controller class for frontend
 
 public class FrontendController {
