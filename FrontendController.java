@@ -21,8 +21,8 @@ public class FrontendController {
     private Region spacer;
 
     public void addBlock(int pid) {
-        // Create a new row with a space then an "add block" button
-        HBox rowContainer = (HBox) processContainer.getChildren().get(pid);
+        // Create a new block
+        HBoxRow rowContainer = (HBoxRow) processContainer.getChildren().get(pid);
         PBlockRect blockButton = new PBlockRect((pid + 1), 
                                     rowContainer.getChildren().size(), 50, 50);
         // TODO: Add blocks currently adds to the left instead of the right
@@ -30,28 +30,11 @@ public class FrontendController {
         System.out.println("Added block " + (rowContainer.getChildren().size() - 3) + " to process " + (pid + 1));
     }
 
-    public void addRow() { 
-        // Create a new row with a space then an "add block" button
-        // HBoxRow newRow = new HBoxRow(processContainer.getChildren().size(), this.processContainer);
-
-        HBox newRow = new HBox();
-        newRow.setAlignment(Pos.CENTER_LEFT);
-        newRow.setPrefHeight(100.0);
-        newRow.setPrefWidth(Double.MAX_VALUE);
-    
-        Region spacer = new Region();
-        spacer.setPrefHeight(12.0);
-        spacer.setPrefWidth(9.0);
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox.setMargin(spacer, new Insets(0, 20, 0, 0));
-    
-        Button addBlockButton = new Button("Add Block");
-        addBlockButton.setOnAction(event -> 
-                            addBlock(processContainer.getChildren().indexOf(newRow)));
-       
-        newRow.getChildren().addAll(addBlockButton, spacer); 
-        processContainer.getChildren().add(newRow);
+        public void addRow() {
+        // Create a new row
         int pid = Scheduler.Scheduler().addProcess();
+        HBoxRow newRow = new HBoxRow(pid, this.processContainer, this);
+        processContainer.getChildren().add(newRow);
         System.out.println("Added process " + processContainer.getChildren().size());
     }
 
