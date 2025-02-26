@@ -2,13 +2,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import static java.lang.System.getProperty;
 
 public class Scheduler {
     private static Scheduler singleton_ref = null;
@@ -101,6 +98,7 @@ public class Scheduler {
     }
 
     public int addProcessBlock(int pid) {
+        // Use the pid to claim the variables and array space needed for a block
         int blockIdx = this.processBlockCount[pid] + (pid * BLOCK_PER_PROCESS);
         ++this.processBlockCount[pid];
 
@@ -130,9 +128,9 @@ public class Scheduler {
 
             for (int block = blockIDStart; block < blockIDStart + this.processBlockCount[process]; ++block) {
                 StringBuilder blockContentStr = this.getBlockContents(block);
-                fullFileString.append("def process_func_block_" + (block - blockIDStart) + ":\n    ");
+                fullFileString.append("def process_func_block_" + (block - blockIDStart) + "():\n    ");
 
-                for (int i = 0; i < blockContentStr.length() - 1; ++i) {
+                for (int i = 0; i < blockContentStr.length(); ++i) {
                     char c = blockContentStr.charAt(i);
                     if (c == '\t') {
                         fullFileString.append("    ");  // convert tabs to spaces

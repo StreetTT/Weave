@@ -4,6 +4,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 public class PBlockRect extends Rectangle {
+    // Links a block and its related variables in the scheduler to the Pane in the front end
     private int pid;
     private int block;
     private PopupEditor editor;
@@ -18,6 +19,7 @@ public class PBlockRect extends Rectangle {
     }
 
     private void handleClick(MouseEvent mouseEvent) {
+        // Open block's editor when double clicked
         if (mouseEvent.getClickCount() == 2) {
             if (this.editor == null) {
                 Scheduler s = Scheduler.Scheduler();
