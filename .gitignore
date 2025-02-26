@@ -9,6 +9,9 @@ build/
 .idea
 *.iml
 
+#test project files
+TEST_PROJ_*
+
 # Compiled class file
 *.class
 
