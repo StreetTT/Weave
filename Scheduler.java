@@ -12,7 +12,7 @@ import static java.lang.System.getProperty;
 
 public class Scheduler {
     private static Scheduler singleton_ref = null;
-    private static final String PROCESS_FILE_HEADER = "import weave_shared as __WEAVE\n";
+    private static final String PROCESS_FILE_HEADER = "import weave_shared as __WEAVE\n__WEAVE.__WEAVE_PROCESS_START(1)\n";
     private static final String PROCESS_FILE_FOOTER = "__WEAVE.__WEAVE_PROCESS_END()";
     private static final int BLOCK_PER_PROCESS = 1024;
     private static final int MAX_PROCESSES = 256;
@@ -23,9 +23,9 @@ public class Scheduler {
     public String projectName;
     public String projectDir;
 
-    // NOTE:(Ray) maybe store all active blocks next to each other and then lookup their PID when required for rendering
+    private int[] blocksFileStartIdx;
+    private int[] blocksFileEndIdx;
     private StringBuilder blocksFileContents[];
-
 
     //NOTE:(Ray) All attributes are allocated as an array to keep data together for bulk processing.
     // A pid (ProcessId) is just an index into anyone of these arrays
@@ -33,27 +33,20 @@ public class Scheduler {
     // pid=0 is always reserved for invalid processes
 
     public String[] processFilenames;
-    public StringBuilder[] processFileContents;
+    public StringBuilder[] processFileContents; //NOTE(Ray): Maybe this are redundant
     public int[] processBlockCount;
 
     private int numProcesses = 1;
 
-    private LongBuffer mutexBuffer;
-    private ByteBuffer signalBuffer;
-
     private Scheduler() {
-        SharedMemory.AlocWeaveSharedBuffer();
-        //NOTE:(Ray) Never use more than 256 as the argument to this function
-        //  maybe make allocWeaveSharedBuffer take in paramters
-
-        this.mutexBuffer = SharedMemory.GetSharedMutexBuffer(256);
-        this.signalBuffer = SharedMemory.GetSignalArray();
-
         this.processFilenames = new String[256];
         this.processFileContents = new StringBuilder[256];
 
         // Process Block arrays
         this.processBlockCount = new int[256];
+        this.blocksFileStartIdx = new int[MAX_BLOCKS];
+        this.blocksFileEndIdx = new int[MAX_BLOCKS];
+
         this.blocksFileContents = new StringBuilder[MAX_BLOCKS];
 
         //TODO(Ray) eventually serialise block pids and times from file
@@ -103,6 +96,10 @@ public class Scheduler {
 
         this.blocksFileContents[blockIdx] = new StringBuilder();
 
+        //NOTE(Ray): Not too sure if should parse python file with regex or serilse the positions of block content
+        this.blocksFileStartIdx[blockIdx] = 0;
+        this.blocksFileEndIdx[blockIdx] = 0;
+
         return blockIdx;
     }
 
@@ -111,20 +108,19 @@ public class Scheduler {
     }
 
     public void writeProcessesToDisk() {
-        for (int pid = 1; pid < this.numProcesses; ++pid) {
+        for (int process = 1; process < this.numProcesses; ++process) {
             StringBuilder fullFileString = new StringBuilder();
             fullFileString.append(PROCESS_FILE_HEADER);
-            fullFileString.append("__WEAVE.__WEAVE_PROCESS_START(" + pid + ")\n");
 
-            int blockIDStart = pid * BLOCK_PER_PROCESS;
-            String filename = this.projectName + "_PROCESS_" + pid + ".py";
+            int blockIDStart = process * BLOCK_PER_PROCESS;
+            String filename = this.projectName + "_PROCESS_" + process + ".py";
             String fullFilepath = this.projectDir + FileSystems.getDefault().getSeparator() + filename;
 
             Path path = Paths.get(fullFilepath);
 
-            for (int block = blockIDStart; block < blockIDStart + this.processBlockCount[pid]; ++block) {
+            for (int block = blockIDStart; block < blockIDStart + this.processBlockCount[process]; ++block) {
                 StringBuilder blockContentStr = this.getBlockContents(block);
-                fullFileString.append("def process_func_block_" + (block - blockIDStart) + ":\n    ");
+                fullFileString.append("def process_func_block_" + (block - blockIDStart) + "():\n    ");
 
                 for (int i = 0; i < blockContentStr.length() - 1; ++i) {
                     char c = blockContentStr.charAt(i);
@@ -150,13 +146,18 @@ public class Scheduler {
             }
 
             fullFileString.append(PROCESS_FILE_FOOTER);
-
             try {
-                 Files.write(path, fullFileString.toString().getBytes());
+                Files.write(path, fullFileString.toString().getBytes());
             } catch (IOException e) {
                 System.err.println("FAILED TO SAVE A PROCESS FILE TO DISK!!");
             }
-
         }
+    }
+
+    public static void main(String args[]) {
+        Scheduler s = new Scheduler();
+        s.projectName = "TEST_PROJ";
+        s.projectDir = args[0];
+        s.addProcess();
     }
 }

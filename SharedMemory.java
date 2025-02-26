@@ -3,84 +3,109 @@ import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 
 public class SharedMemory {
-    static public native void AlocWeaveSharedBuffer();
-    static private native ByteBuffer GetMutexByteArray(int ammount);
-    static public LongBuffer GetSharedMutexBuffer(int ammount) {
-        return GetMutexByteArray(ammount).order(ByteOrder.nativeOrder()).asLongBuffer();
+    static private native void AlocWeaveSharedBuffer();
+    static private native ByteBuffer GetSignalArray();
+    static public native void FreeWeaveSharedBuffer();
+    static private native void ReleaseProcess(int pid);
+    static private native void WaitForProcess(int pid);
+    static public native long CreatePythonProcess(String process);
+
+    private static SharedMemory singletonRef;
+    private ByteBuffer signalArray;
+
+    private SharedMemory() {
+        SharedMemory.AlocWeaveSharedBuffer();
+        this.signalArray = SharedMemory.GetSignalArray();
+    };
+
+    static public SharedMemory SharedMemory() {
+        if (singletonRef == null) {
+            singletonRef = new SharedMemory();
+        }
+
+        return singletonRef;
     }
 
-    static public native ByteBuffer GetSignalArray();
-    static public native void FreeWeaveSharedBuffer();
-    static public native void ReleaseMutex(long mutex);
-    static public native void WaitForMutex(long mutex);
-    static public native long CreateProcess(String process);
-    static public native long CreateMutex();
-    static public native void WaitForMultipleMutex(long mutexArr[], int count); 
+    public void RunPidsAndWait(int[] pids) {
+        for (int i = 0; i < pids.length; ++i) {
+            SharedMemory.ReleaseProcess(pids[i]);
+        }
 
-    //Make class impossible to instantiate
-    private SharedMemory() {};
+        boolean allSignaled = false;
+        // spinlock until all mutexes have been aqquired on the python side
+        while (!allSignaled) {
+            allSignaled = true;
+            for (int i = 0; i < pids.length; ++i) {
+                if (this.signalArray.get(pids[i]) == 0) {
+                    allSignaled = false;
+                }
+            }
+        }
+
+        for (int i = 0; i < pids.length; ++i) {
+            WaitForProcess(pids[i]);
+        }
+
+        // reset the signal
+        for (int i = 0; i < pids.length; ++i) {
+            this.signalArray.put(pids[i], (byte)0);
+        }
+
+    }
 
     static {
-        System.loadLibrary("lib/shared_map");
+        System.loadLibrary("./lib/shared_map");
     }
 
     //TODO(Ray): Convert this into a more general Run function inside the scheduler
+    //TODO(Ray): stop using stdio to debug and use sharedmemeory instead
+    //TODO(Ray): Move testing code out of main
     public static void main(String args[]) {
-        SharedMemory.AlocWeaveSharedBuffer();
-
-        LongBuffer sharedMutexBuff = SharedMemory.GetSharedMutexBuffer(2);
+        SharedMemory s = SharedMemory.SharedMemory();
         ByteBuffer signalArray = SharedMemory.GetSignalArray();
 
-        System.out.println(sharedMutexBuff.get(0));
-        System.out.println(sharedMutexBuff.get(1));
+        SharedMemory.WaitForProcess(1);
+        SharedMemory.WaitForProcess(2);
 
-        SharedMemory.WaitForMutex(sharedMutexBuff.get(0));
-        SharedMemory.WaitForMutex(sharedMutexBuff.get(1));
-
-        long p1 = SharedMemory.CreateProcess("python testproj/program1.py");
-        long p2 = SharedMemory.CreateProcess("python testproj/program2.py");
-
-        System.out.println(signalArray.get(0));
-        System.out.println(signalArray.get(1));
-
-        SharedMemory.ReleaseMutex(sharedMutexBuff.get(0));
-        SharedMemory.ReleaseMutex(sharedMutexBuff.get(1));
-
-        //SPINLOCK SO WE DON't steal the mutex
-        while (signalArray.get(0) == 0 || signalArray.get(1) == 0) {
-            continue;
+        for (int i = 0; i < signalArray.capacity(); ++i) {
+            System.out.print(signalArray.get(i));
         }
 
-        System.out.println(signalArray.get(0));
-        System.out.println(signalArray.get(1));
-
-        SharedMemory.WaitForMultipleMutex(new long[] {sharedMutexBuff.get(0), 
-                sharedMutexBuff.get(1)}, 2);
-        signalArray.put(0, (byte)0);
-        signalArray.put(1, (byte)0);
-
-        System.out.println("Process 1 & 2 ran first func");
-
-        SharedMemory.ReleaseMutex(sharedMutexBuff.get(0));
-        while (signalArray.get(0) == 0) {
-            continue;
+        for (int i = 0; i < signalArray.capacity(); ++i) {
+            System.out.print(signalArray.get(i));
         }
 
-        SharedMemory.WaitForMultipleMutex(new long[] {sharedMutexBuff.get(0)}, 1);
-        signalArray.put(0, (byte)0);
-        System.out.println("Process 1 ran func2");
+        System.out.println();
+        System.out.println("------------------------------------");
 
-        SharedMemory.ReleaseMutex(sharedMutexBuff.get(1));
-        while (signalArray.get(1) == 0) {
-            continue;
+        long p1 = SharedMemory.CreatePythonProcess("testproj/program1.py");
+        long p2 = SharedMemory.CreatePythonProcess("testproj/program2.py");
+
+        s.RunPidsAndWait(new int[]{2});
+
+        for (int i = 0; i < signalArray.capacity(); ++i) {
+            System.out.print(signalArray.get(i));
         }
 
-        SharedMemory.WaitForMultipleMutex(new long[] {sharedMutexBuff.get(1)}, 1);
-        signalArray.put(1, (byte)0);
-        System.out.println("Process 2 ran func2");
-        WaitForMutex(p1);
-        WaitForMutex(p2);
-        System.out.println("finished");
+        System.out.println();
+        System.out.println("------------------------------------");
+
+        s.RunPidsAndWait(new int[]{1});
+
+        for (int i = 0; i < signalArray.capacity(); ++i) {
+            System.out.print(signalArray.get(i));
+        }
+        System.out.println();
+        System.out.println("------------------------------------");
+
+        s.RunPidsAndWait(new int[]{2, 1});
+
+        for (int i = 0; i < signalArray.capacity(); ++i) {
+            System.out.print(signalArray.get(i));
+        }
+
+        System.out.println();
+        System.out.println("------------------------------------");
 
         SharedMemory.FreeWeaveSharedBuffer();
     }

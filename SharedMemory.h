@@ -17,14 +17,6 @@ JNIEXPORT void JNICALL Java_SharedMemory_AlocWeaveSharedBuffer
 
 /*
  * Class:     SharedMemory
- * Method:    GetMutexByteArray
- * Signature: (I)Ljava/nio/ByteBuffer;
- */
-JNIEXPORT jobject JNICALL Java_SharedMemory_GetMutexByteArray
-  (JNIEnv *, jclass, jint);
-
-/*
- * Class:     SharedMemory
  * Method:    GetSignalArray
  * Signature: ()Ljava/nio/ByteBuffer;
  */
@@ -41,43 +33,27 @@ JNIEXPORT void JNICALL Java_SharedMemory_FreeWeaveSharedBuffer
 
 /*
  * Class:     SharedMemory
- * Method:    ReleaseMutex
- * Signature: (J)V
+ * Method:    ReleaseProcess
+ * Signature: (I)V
  */
-JNIEXPORT void JNICALL Java_SharedMemory_ReleaseMutex
-  (JNIEnv *, jclass, jlong);
+JNIEXPORT void JNICALL Java_SharedMemory_ReleaseProcess
+  (JNIEnv *, jclass, jint);
 
 /*
  * Class:     SharedMemory
- * Method:    WaitForMutex
- * Signature: (J)V
+ * Method:    WaitForProcess
+ * Signature: (I)V
  */
-JNIEXPORT void JNICALL Java_SharedMemory_WaitForMutex
-  (JNIEnv *, jclass, jlong);
+JNIEXPORT void JNICALL Java_SharedMemory_WaitForProcess
+  (JNIEnv *, jclass, jint);
 
 /*
  * Class:     SharedMemory
- * Method:    CreateProcess
+ * Method:    CreatePythonProcess
  * Signature: (Ljava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_SharedMemory_CreateProcess
+JNIEXPORT jlong JNICALL Java_SharedMemory_CreatePythonProcess
   (JNIEnv *, jclass, jstring);
-
-/*
- * Class:     SharedMemory
- * Method:    CreateMutex
- * Signature: ()J
- */
-JNIEXPORT jlong JNICALL Java_SharedMemory_CreateMutex
-  (JNIEnv *, jclass);
-
-/*
- * Class:     SharedMemory
- * Method:    WaitForMultipleMutex
- * Signature: ([JI)V
- */
-JNIEXPORT void JNICALL Java_SharedMemory_WaitForMultipleMutex
-  (JNIEnv *, jclass, jlongArray, jint);
 
 #ifdef __cplusplus
 }
