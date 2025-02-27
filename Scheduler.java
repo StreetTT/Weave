@@ -1,7 +1,5 @@
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.LongBuffer;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,7 +11,6 @@ public class Scheduler {
     private static final String PROCESS_FILE_FOOTER = "__WEAVE.__WEAVE_PROCESS_END()";
     private static final int BLOCK_PER_PROCESS = 1024;
     private static final int MAX_PROCESSES = 256;
-
 
     public static final int MAX_BLOCKS = MAX_PROCESSES*BLOCK_PER_PROCESS;
 
@@ -28,6 +25,8 @@ public class Scheduler {
     // A pid (ProcessId) is just an index into anyone of these arrays
     // A block index is simply just the (blockid + pid * MAX_PROCESSES)
     // pid=0 is always reserved for invalid processes
+
+    // For the frontend the above isn't relavent and it can just pass around PIDs and BlockIDs to the scheduler functions
 
     public String[] processFilenames;
     public StringBuilder[] processFileContents; //NOTE(Ray): Maybe this are redundant

@@ -30,7 +30,7 @@ public class HBoxRow extends HBox {
         // Create and configure add button
         Button addBlockButton = new Button("Add Block");
         addBlockButton.setOnAction(event -> 
-            frontendController.addBlock(processContainer.getChildren().indexOf(this)));
+            frontendController.addBlock(this.pid, this));
         
         // Add both spacer and button to the row
         getChildren().addAll(addBlockButton, spacer);

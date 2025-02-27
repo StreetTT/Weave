@@ -23,14 +23,12 @@ public class FrontendController {
     @FXML
     private Region spacer;
 
-    public void addBlock(int pid) {
+    public void addBlock(int pid, HBoxRow parentRowContainer) {
         // Create a new block
-        HBoxRow rowContainer = (HBoxRow) processContainer.getChildren().get(pid);
-        PBlockRect blockButton = new PBlockRect((pid + 1), 
-                                    rowContainer.getChildren().size(), 50, 50);
+        PBlockRect block = new PBlockRect(pid, parentRowContainer.getChildren().size(), 50, 50);
         // TODO: Add blocks currently adds to the left instead of the right
-        rowContainer.getChildren().add(rowContainer.getChildren().size(), blockButton);
-        System.out.println("Added block " + (rowContainer.getChildren().size() - 3) + " to process " + (pid + 1));
+        parentRowContainer.getChildren().add(parentRowContainer.getChildren().size(), block);
+        System.out.println("Added block " + (parentRowContainer.getChildren().size() - 3) + " to process " + (pid));
     }
 
         public void addRow() {
