@@ -32,7 +32,7 @@ public class HBoxRow extends HBox {
         // Create and configure add button
         Button addBlockButton = new Button("Add Block");
         addBlockButton.setOnAction(event -> this.addBlock(this.numBlocks++));
-        
+     
         // Add both spacer and button to the row
         getChildren().addAll(addBlockButton, spacer);
     }

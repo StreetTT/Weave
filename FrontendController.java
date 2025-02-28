@@ -21,7 +21,6 @@ public class FrontendController {
     @FXML
     private Region spacer;
 
-
     public void addRow() {
         // Create a new row
         WeaveProcess process = new WeaveProcess();
