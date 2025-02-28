@@ -8,13 +8,15 @@ import javafx.geometry.Insets;
 
 public class HBoxRow extends HBox {
     // Links a row and its related blocks to the HBox in the front end
-    private int pid;
+    private WeaveProcess process;
+    private int numBlocks;
 
-    public HBoxRow(int pid, VBox processContainer, FrontendController frontendController ) {
-        
+    public HBoxRow(WeaveProcess process) {
         // Create a new row
         super();
-        this.pid = pid;
+        this.process = process;
+        this.numBlocks = 0;
+
         setAlignment(Pos.CENTER_LEFT);
         setPrefHeight(100.0);
         setPrefWidth(Double.MAX_VALUE);
@@ -26,18 +28,22 @@ public class HBoxRow extends HBox {
         spacer.setPrefWidth(9.0);
         setHgrow(spacer, Priority.ALWAYS);
         setMargin(spacer, new Insets(0, 20, 0, 0));
-        
+
         // Create and configure add button
         Button addBlockButton = new Button("Add Block");
-        addBlockButton.setOnAction(event -> 
-            frontendController.addBlock(this.pid, this));
-        
+        addBlockButton.setOnAction(event -> this.addBlock(this.numBlocks++));
+     
         // Add both spacer and button to the row
         getChildren().addAll(addBlockButton, spacer);
     }
 
-    public int getPid() {
-        return pid;
+    private void addBlock(int pos) {
+        // Create a new block
+        Block block = process.addBlock(pos);
+        PBlockRect blockButton = new PBlockRect(block);
+        // TODO: Add blocks currently adds to the left instead of the right
+        this.getChildren().add(this.getChildren().size(), blockButton);
+        System.out.println("Added block " + (this.getChildren().size() - 3) + " to process " + this.process);
     }
 
 }
