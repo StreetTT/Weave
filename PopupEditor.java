@@ -7,11 +7,11 @@ import javafx.stage.WindowEvent;
 public class PopupEditor {
     private boolean showing;
     private Stage currStage;
-    private int block;
+    private Block block;
     private TextArea textArea;
 
 
-    public PopupEditor(int block, StringBuilder contents) {
+    public PopupEditor(Block block) {
         this.showing = false;
         this.block = block;
     }
@@ -20,14 +20,14 @@ public class PopupEditor {
         if (!showing) {
             this.showing = true;
             this.currStage = new Stage();
-            Scheduler s = Scheduler.Scheduler();
+            //Scheduler s = Scheduler.Scheduler();
             currStage.setTitle("Popup Editor");
 
             // make sure window doesn't block application events
             currStage.initModality(Modality.NONE);
 
             //TODO(Ray) implement loading of process file blocks into text field
-            this.textArea = new TextArea(s.getBlockContents(this.block).toString());
+            this.textArea = new TextArea(this.block.fileContents.toString());
             Scene scene = new Scene(this.textArea, 300, 200);
             currStage.setScene(scene);
 
@@ -43,12 +43,8 @@ public class PopupEditor {
     }
 
     public void saveOnClose(WindowEvent event) {
-        // save the into the contents
-        Scheduler s = Scheduler.Scheduler();
-        StringBuilder blockString = s.getBlockContents(this.block);
-
-        blockString.setLength(0); // Clear the string
-        blockString.append(this.textArea.getText()); // overwite with new string
+        this.block.fileContents.setLength(0); // Clear the string
+        this.block.fileContents.append(this.textArea.getText()); // overwite with new string
 
         this.showing = false;
     }
