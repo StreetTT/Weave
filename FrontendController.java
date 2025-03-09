@@ -23,7 +23,10 @@ public class FrontendController {
 
     public void addRow() {
         // Create a new row
-        HBoxRow newRow = new HBoxRow(10);
+        WeaveProcess process = new WeaveProcess();
+        Frontend.processes.add(process);
+
+        HBoxRow newRow = new HBoxRow(Frontend.processes.size());
 
         for (int i = 0; i < 7; i++){
             Button plusButton = new Button("+");
@@ -35,18 +38,10 @@ public class FrontendController {
         Button addedProcessButton = new Button("Added Process");
         addedProcessButton.setPrefWidth(120);
         addedProcessButton.setPrefHeight(30);
-
         newRow.getChildren().add(addedProcessButton);
+
         processContainer.getChildren().add(newRow);
-        
+
         System.out.println("Added process " + processContainer.getChildren().size());
-
-        //WeaveProcess process = new WeaveProcess();
-        //Frontend.processes.add(process);
-
-        //HBoxRow newRow = new HBoxRow(process);
-        //processContainer.getChildren().add(newRow);
-        //System.out.println("Added process " + processContainer.getChildren().size());
     }
-
 }
