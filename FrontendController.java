@@ -26,7 +26,7 @@ public class FrontendController {
         WeaveProcess process = new WeaveProcess();
         Frontend.processes.add(process);
 
-        HBoxRow newRow = new HBoxRow(Frontend.processes.size());
+        HBoxRow newRow = new HBoxRow(process);
 
         for (int i = 0; i < 7; i++){
             Button plusButton = new Button("+");
