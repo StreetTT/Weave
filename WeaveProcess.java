@@ -16,12 +16,35 @@ public class WeaveProcess {
         return blocks[pos] = new Block(new StringBuilder());
     }
 
-    public void swapBlocks(int pos1, int pos2) {
-        StringBuilder tempContents = blocks[pos1].fileContents;
-        blocks[pos1].fileContents = blocks[pos2].fileContents;
+    public Block removeBlockAndShift(int pos) {
+        Block removedbBlock = blocks[pos];
+        shiftBlocksLeft(pos, largestIndex);
+        largestIndex--;
+        return removedbBlock;
     }
 
-    public void removeBlock(int pos) {
-        blocks[pos] = null;
+    public void insertBlockAndShift(int pos, Block block) {
+        if (pos > largestIndex) {
+            blocks[pos] = block;
+            largestIndex = pos;
+        } else {
+            shiftBlocksRight(pos, largestIndex + 1);
+            blocks[pos] = block;
+            largestIndex++;
+        }
+    }
+
+    private void shiftBlocksRight(int startPos, int endPos) {
+        for (int i = endPos; i > startPos; i--) {
+            blocks[i] = blocks[i - 1];
+        }
+        blocks[startPos] = null;
+    }
+
+    private void shiftBlocksLeft(int startPos, int endPos) {
+        for (int i = startPos; i < endPos; i++) {
+            blocks[i] = blocks[i + 1];
+        }
+        blocks[endPos] = null;
     }
 }
