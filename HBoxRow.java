@@ -2,6 +2,7 @@ import javafx.geometry.Pos;
 import javafx.scene.layout.Priority;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.layout.Region;
 import javafx.geometry.Insets;
 
@@ -10,7 +11,7 @@ public class HBoxRow extends HBox {
     private WeaveProcess process;
     private int numBlocks;
 
-    public HBoxRow(int process) {
+    public HBoxRow(WeaveProcess process) {
         // Create a new row
         super();
         this.process = process;
