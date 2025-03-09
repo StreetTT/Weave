@@ -23,12 +23,19 @@ public class FrontendController {
 
     public void addRow() {
         // Create a new row
-        WeaveProcess process = new WeaveProcess();
-        Frontend.processes.add(process);
+        HBoxRow newRow = new HBoxRow(10);
 
-        HBoxRow newRow = new HBoxRow(process);
-        processContainer.getChildren().add(newRow);
-        System.out.println("Added process " + processContainer.getChildren().size());
+        for (int i = 0; i < 7; i++){
+            Button plusButton = new Button("+");
+            
+        }
+
+        //WeaveProcess process = new WeaveProcess();
+        //Frontend.processes.add(process);
+
+        //HBoxRow newRow = new HBoxRow(process);
+        //processContainer.getChildren().add(newRow);
+        //System.out.println("Added process " + processContainer.getChildren().size());
     }
 
 }
