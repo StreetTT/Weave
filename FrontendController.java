@@ -32,6 +32,10 @@ public class FrontendController {
             newRow.getChildren().add(plusButton);
         }
 
+        Button addedProcessButton = new Button("Added Process");
+        addedProcessButton.setPrefWidth(120);
+        addedProcessButton.setPrefHeight(30);
+
         //WeaveProcess process = new WeaveProcess();
         //Frontend.processes.add(process);
 
