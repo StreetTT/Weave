@@ -38,6 +38,8 @@ public class FrontendController {
 
         newRow.getChildren().add(addedProcessButton);
         processContainer.getChildren().add(newRow);
+        
+        System.out.println("Added process " + processContainer.getChildren().size());
 
         //WeaveProcess process = new WeaveProcess();
         //Frontend.processes.add(process);
