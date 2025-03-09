@@ -27,7 +27,9 @@ public class FrontendController {
 
         for (int i = 0; i < 7; i++){
             Button plusButton = new Button("+");
-            
+            plusButton.setPrefWidth(40);
+            plusButton.setPrefHeight(30);
+            newRow.getChildren().add(plusButton);
         }
 
         //WeaveProcess process = new WeaveProcess();
