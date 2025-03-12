@@ -40,7 +40,7 @@ public class HBoxRow extends HBox {
     private void addBlock(int pos) {
         // Create a new block
         Block block = process.addBlock(pos);
-        PBlockRect blockButton = new PBlockRect(block);
+        PBlockRect blockButton = new PBlockRect(process, pos);
         // TODO: Add blocks currently adds to the left instead of the right
         this.getChildren().add(this.getChildren().size(), blockButton);
         System.out.println("Added block " + (this.getChildren().size() - 3) + " to process " + this.process);

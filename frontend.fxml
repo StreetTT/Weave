@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
@@ -39,7 +38,7 @@
             </MenuBar>
          </top>
          <left>
-            <VBox fx:id="processContainer" alignment="CENTER_LEFT" fillWidth="false" prefHeight="400.0" prefWidth="200.0" BorderPane.alignment="CENTER_LEFT">
+            <VBox fx:id="processContainer" alignment="CENTER_LEFT" fillWidth="false" prefHeight="400.0" prefWidth="200.0" spacing="10.0" BorderPane.alignment="CENTER_LEFT">
                <children>
                   <!-- Rows to be added here -->
                </children>
