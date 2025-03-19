@@ -1,17 +1,24 @@
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 
-import java.awt.event.MouseEvent;
-
 public class GridPaneRow extends GridPane {
-    private static final int CELL_SIZE = 50;
+    private static final int CELL_SIZE_PADDING = 60;
     private static final int COLS = 10;
     private final WeaveProcess process;
+
+    // for drag and drop
+    private int initialCol;
+    private PBlockRect dragRect;
+    private Paint initialColor;
+    private long clickStartTime;
 
     public GridPaneRow(WeaveProcess process) {
         super();
@@ -19,7 +26,7 @@ public class GridPaneRow extends GridPane {
         setAlignment(Pos.CENTER_LEFT);
 
         for (int i = 0; i < COLS; ++i) {
-            ColumnConstraints col = new ColumnConstraints(CELL_SIZE + 10); // 10 padding
+            ColumnConstraints col = new ColumnConstraints(CELL_SIZE_PADDING); // 10 padding
             this.getColumnConstraints().add(col);
         }
 
@@ -32,9 +39,58 @@ public class GridPaneRow extends GridPane {
             Rectangle blockRect = new PBlockRect(this.process, i);
             blockRect.setFill(Color.RED);
 
-            this.add(blockRect, i, 1);
+            this.add(blockRect, i, 0);
         }
+
+        this.setOnMousePressed(event -> {
+            clickStartTime = System.currentTimeMillis();
+                initialCol = (int) (event.getX() / CELL_SIZE_PADDING);
+                dragRect = findRectFromCol(initialCol);
+                initialColor = dragRect.getFill();
+
+                if (dragRect != null) {
+                    dragRect.setFill(Color.BLACK);
+                }
+        });
+
+        this.setOnMouseReleased(this::dragAndDrop);
     }
 
+    private PBlockRect findRectFromCol(int col) {
+        //NOTE:(Ray) for some reason javafx requires you to loop over every single child just to find out if one
+        // is at a specified index....
+        for (Node node : this.getChildren()) {
+            if (GridPane.getColumnIndex(node) == col) {
+                return (PBlockRect) node; // can just cast since we know what the object will be
+            }
+        }
+
+        return null;
+    }
+
+    private void dragAndDrop(MouseEvent event) {
+        long duration = System.currentTimeMillis() - clickStartTime;
+        if (dragRect != null) {
+            if (duration > 100) {
+                final int newCol = (int) (event.getX() / CELL_SIZE_PADDING);
+
+                boolean inXBounds = event.getX() < this.getWidth() || event.getX() >= 0;
+                boolean inYBounds = event.getY() < this.getHeight() || event.getY() >= 0;
+
+                if (inXBounds && inYBounds) {
+                    if (newCol != initialCol) {
+                        PBlockRect rect = findRectFromCol(newCol);
+                        this.getChildren().removeAll(dragRect, rect);
+                        this.add(dragRect, newCol, 0);
+                        this.add(rect, initialCol, 0);
+                    }
+
+                }
+            }
+
+            dragRect.setFill(initialColor);
+            dragRect = null;
+        }
+    }
 
 }
