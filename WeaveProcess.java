@@ -15,6 +15,15 @@ public class WeaveProcess {
 
         return blocks[pos] = new Block(new StringBuilder());
     }
+    // TODO(Ray): Unit Test this function
+    public void swapBlocks(int idxA, int idxB) {
+        Block temp = blocks[idxA];
+        blocks[idxA] = blocks[idxB];
+        blocks[idxB] = temp;
+
+        int maxIdx = Math.max(idxA, idxB);
+        this.largestIndex = Math.max(maxIdx, largestIndex);
+    }
 
     public Block removeBlockAndShift(int pos) {
         Block removedbBlock = blocks[pos];

@@ -88,6 +88,7 @@ public class GridPaneRow extends GridPane {
                         this.getChildren().removeAll(dragRect, rect);
                         this.add(dragRect, newCol, 0);
                         this.add(rect, initialCol, 0);
+                        this.process.swapBlocks(initialCol, newCol);
                     }
 
                 }
