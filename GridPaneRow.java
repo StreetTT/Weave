@@ -17,7 +17,6 @@ public class GridPaneRow extends GridPane {
     // for drag and drop
     private int initialCol;
     private PBlockRect dragRect;
-    private Paint initialColor;
     private long clickStartTime;
 
     public GridPaneRow(WeaveProcess process) {
@@ -43,14 +42,16 @@ public class GridPaneRow extends GridPane {
         }
 
         this.setOnMousePressed(event -> {
-            clickStartTime = System.currentTimeMillis();
+            if (!event.getEventType().equals(MouseEvent.MOUSE_CLICKED)) {
+                clickStartTime = System.currentTimeMillis();
                 initialCol = (int) (event.getX() / CELL_SIZE_PADDING);
-                dragRect = findRectFromCol(initialCol);
-                initialColor = dragRect.getFill();
-
-                if (dragRect != null) {
-                    dragRect.setFill(Color.BLACK);
+                if (isInsideGrid(event.getX(), event.getY())) {
+                    dragRect = findRectFromCol(initialCol);
+                    if (dragRect != null) {
+                        dragRect.setFill(Color.BLACK);
+                    }
                 }
+            }
         });
 
         this.setOnMouseReleased(this::dragAndDrop);
@@ -68,16 +69,20 @@ public class GridPaneRow extends GridPane {
         return null;
     }
 
+    private boolean isInsideGrid(double x, double y) {
+        boolean inXBounds = x < this.getWidth() || x >= 0;
+        boolean inYBounds = y < this.getHeight() || y >= 0;
+
+        return inXBounds && inYBounds;
+    }
+
     private void dragAndDrop(MouseEvent event) {
         long duration = System.currentTimeMillis() - clickStartTime;
         if (dragRect != null) {
             if (duration > 100) {
-                final int newCol = (int) (event.getX() / CELL_SIZE_PADDING);
 
-                boolean inXBounds = event.getX() < this.getWidth() || event.getX() >= 0;
-                boolean inYBounds = event.getY() < this.getHeight() || event.getY() >= 0;
-
-                if (inXBounds && inYBounds) {
+                if (isInsideGrid(event.getX(), event.getY())) {
+                    final int newCol = (int) (event.getX() / CELL_SIZE_PADDING);
                     if (newCol != initialCol) {
                         PBlockRect rect = findRectFromCol(newCol);
                         this.getChildren().removeAll(dragRect, rect);
@@ -88,7 +93,6 @@ public class GridPaneRow extends GridPane {
                 }
             }
 
-            dragRect.setFill(initialColor);
             dragRect = null;
         }
     }

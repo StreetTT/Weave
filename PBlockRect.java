@@ -18,23 +18,39 @@ public class PBlockRect extends Rectangle {
         this.pos = pos;
         this.process = process;
         setFill(Color.LIGHTGRAY);
-        setOnMousePressed(this::handleClick);
+
+        setOnMouseClicked(this::handleClick);
+        setOnMousePressed(this::handlePressed);
+        setOnMouseReleased(this::handleRelease);
     }
 
     private void handleClick(MouseEvent event) {
-        if (event.getClickCount() == 2) {
-            if (this.block != null)  {
-                if (this.editor == null) {
-                    this.editor = new PopupEditor(this.block);
-                }
+            System.out.println("MOUSE CLICKED");
+            if (event.getClickCount() == 2) {
+                if (this.block != null) {
+                    if (this.editor == null) {
+                        this.editor = new PopupEditor(this.block);
+                    }
 
-                this.editor.showPopup();
-            } else {
-                this.block = process.addBlock(this.pos);
-                setFill(Color.GREEN);
+                    this.editor.showPopup();
+                } else {
+                    this.block = process.addBlock(this.pos);
+                    setFill(Color.GREEN);
+                }
             }
         }
 
+    private void handlePressed(MouseEvent event) {
+        setFill(Color.BLACK);
     }
+
+    private void handleRelease(MouseEvent event) {
+        if (this.block != null) {
+            this.setFill(Color.GREEN);
+        } else {
+            this.setFill(Color.RED);
+        }
+    }
+
 
 }
