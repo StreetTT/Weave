@@ -41,7 +41,7 @@
     </condition>
 
     <!-- Compile -->
-    <target name="compile" depends="clean, mkdir, copy, compile-c">
+    <target name="compile" depends="clean, mkdir, copy">
         <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false">
             <include name="**/*.java"/>
             <classpath>
