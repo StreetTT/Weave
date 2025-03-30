@@ -1,0 +1,145 @@
+<?xml version="1.0" ?>
+<project name="weave" default="compile">
+
+    <!-- Properties -->
+    <property name="build.dir" value="build"/>
+    <property name="src.dir" value="src"/>
+    <property name="test.dir" value="test"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="javafx.version" value="21.0.6"/>
+    <property name="test.reports.dir" value="test-reports"/>
+    <condition property="junit.jar"
+               value="${lib.dir}/win64/junit-platform-console-standalone-1.12.1.jar"
+               else="${lib.dir}/macos-aarch64/junit-platform-console-standalone-1.12.1.jar">
+        <isset property="is.windows"/>
+    </condition>
+
+
+    <!-- Path Definition for testing-->
+    <path id="test.classpath">
+        <pathelement location="${build.dir}"/>
+        <pathelement location="${junit.jar}"/>
+        <!-- Include JavaFX jars if needed for tests -->
+        <fileset dir="${lib.dir}/macos-aarch64/javafx-sdk-21.0.6/lib" includes="*.jar"/>
+    </path>
+
+
+    <!-- Check for OS -->
+    <condition property="is.windows">
+        <os family="windows"/>
+    </condition>
+    <condition property="is.macos">
+        <os family="mac"/>
+    </condition>
+
+    <!-- Set JavaFX paths based on OS -->
+    <condition property="javafx.lib.dir" value="${lib.dir}/win64/javafx-sdk-${javafx.version}/lib" else="${lib.dir}/macos-aarch64/javafx-sdk-${javafx.version}/lib">
+        <isset property="is.windows"/>
+    </condition>
+    <condition property="native.lib.dir" value="${lib.dir}/win64" else="${lib.dir}/macos-aarch64">
+        <isset property="is.windows"/>
+    </condition>
+
+    <!-- Compile -->
+    <target name="compile" depends="clean, mkdir, copy">
+        <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false">
+            <include name="**/*.java"/>
+            <classpath>
+                <fileset dir="${javafx.lib.dir}" includes="*.jar"/>
+                <fileset dir="${lib.dir}" includes="shared_map.*"/>
+            </classpath>
+        </javac>
+    </target>
+
+
+    <!-- Compile tests-->
+    <target name="compile-tests" depends="compile">
+        <javac srcdir="${test.dir}" destdir="${build.dir}" includeantruntime="false">
+            <classpath refid="test.classpath"/>
+        </javac>
+    </target>
+
+
+    <!-- Run targets -->
+    <target name="run-mac" depends="compile, test" if="is.macos">
+        <java classname="Frontend" fork="true">
+            <classpath>
+                <pathelement location="${build.dir}"/>
+                <fileset dir="${javafx.lib.dir}" includes="*.jar"/>
+            </classpath>
+            <jvmarg value="-Djava.library.path=${native.lib.dir}"/>
+            <jvmarg line="--module-path ${javafx.lib.dir} --add-modules javafx.base,javafx.controls,javafx.fxml"/>
+        </java>
+    </target>
+
+    <target name="run-windows" depends="compile, test" if="is.windows">
+        <java classname="Frontend" fork="true">
+            <classpath>
+                <pathelement location="${build.dir}"/>
+                <fileset dir="${javafx.lib.dir}" includes="*.jar"/>
+            </classpath>
+            <jvmarg value="-Djava.library.path=${native.lib.dir}"/>
+            <jvmarg line="--module-path ${javafx.lib.dir} --add-modules javafx.base,javafx.controls,javafx.fxml"/>
+        </java>
+    </target>
+
+    <target name="run" depends="run-windows, run-mac"/>
+
+    <!-- Resources -->
+    <target name="copy" depends="mkdir">
+        <copy todir="${build.dir}">
+            <fileset dir="${src.dir}">
+                <include name="**/*.fxml"/>
+                <include name="**/*.png"/>
+
+            </fileset>
+        </copy>
+    </target>
+
+    <!-- Clean -->
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+        <delete dir="${test.reports.dir}"/>
+    </target>
+
+    <!-- Create dir -->
+    <target name="mkdir">
+        <mkdir dir="${build.dir}"/>
+    </target>
+
+    <!-- Junit tests -->
+
+    <target name="test" depends="compile, compile-tests">
+        <mkdir dir="${test.reports.dir}"/>
+
+        <java classname="org.junit.platform.console.ConsoleLauncher" fork="true">
+            <classpath refid="test.classpath"/>
+            <arg value="--scan-class-path"/>
+            <arg value="--include-classname"/>
+            <arg value=".*Test"/>
+            <arg value="--reports-dir"/>
+            <arg value="${test.reports.dir}"/>
+            <arg value="--class-path"/>
+            <arg pathref="test.classpath"/>
+        </java>
+    </target>
+    <!-- Native compilation for windows -->
+    <target name="compile-c" if="is.windows">
+        <exec executable="javac">
+            <arg value="-h"/>
+            <arg value="./"/>
+            <arg value="SharedMemory.java"/>
+        </exec>
+        <exec executable="cl">
+            <arg value="/Febuild\"/>
+            <arg value="/Fobuild\"/>
+            <arg value="/Fdbuild\"/>
+            <arg value="/I${java.home}\include"/>
+            <arg value="/I${java.home}\include\win32"/>
+            <arg value="/LD"/>
+            <arg value="shared_map.c"/>
+            <arg value="Kernel32.lib"/>
+        </exec>
+        <copy file="build/shared_map.dll" todir="${lib.dir}"/>
+    </target>
+</project>

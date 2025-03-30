@@ -10,7 +10,6 @@ public class PopupEditor {
     private Block block;
     private TextArea textArea;
 
-
     public PopupEditor(Block block) {
         this.showing = false;
         this.block = block;
