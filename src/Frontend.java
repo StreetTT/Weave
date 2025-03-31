@@ -18,6 +18,9 @@ public class Frontend extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("frontend.fxml"));
         Scheduler scheduler = Scheduler.Scheduler(); // Please always do this at application start
 
+        // init shared memory
+        SharedMemory.SharedMemory();
+
         scheduler.projectDir = "testproj";
         scheduler.projectName = "TEST_PROJ";
         primaryStage.setTitle("Weave");
@@ -38,7 +41,7 @@ public class Frontend extends Application {
 
     public void closeFunction(WindowEvent e) {
         Scheduler.Scheduler().writeProcessesToDisk(processes);
-        //SharedMemory.FreeWeaveSharedBuffer();
+        SharedMemory.FreeWeaveSharedBuffer();
     }
 
     public static void main(String[] args) {
