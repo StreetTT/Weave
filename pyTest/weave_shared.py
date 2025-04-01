@@ -57,5 +57,4 @@ def __WEAVE_WAIT_TILL_SCHEDULED():
 
 def __WEAVE_PROCESS_END():
     LIB.python_mutex_release(__WEAVE_PID_TO_MUTEX(PID))
-    WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] = 2;
     WEAVE_IPCMEM.close()

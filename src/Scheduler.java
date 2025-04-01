@@ -1,13 +1,15 @@
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class Scheduler {
     private static Scheduler singleton_ref = null;
     private static final String PROCESS_FILE_HEADER = "import weave_shared as __WEAVE\n";
     private static final String PROCESS_FILE_FOOTER = "__WEAVE.__WEAVE_PROCESS_END()";
-    private static final String FUNCTION_HEADER = "process_func_block_";
     public String projectName;
     public String projectDir;
   
@@ -45,34 +47,20 @@ public class Scheduler {
         }
     }
 
-    private String getFilenameFromIdx(int idx) {
-        return this.projectName + "_PROCESS_" + (idx + 1) + ".py";
-    }
-
-    private String getBlockFuctionStringFromIdx(int i) {
-        return FUNCTION_HEADER + (i) + "()";
-    }
-
-    private int getPIDFromIDX(int i) {
-        return i + 1;
-    }
-
     public void writeProcessesToDisk(ArrayList<WeaveProcess> processes) {
         for (int processIdx = 0; processIdx < processes.size(); ++processIdx) {
-            //output the headers
             WeaveProcess process = processes.get(processIdx);
             StringBuilder fullFileString = new StringBuilder();
             fullFileString.append(PROCESS_FILE_HEADER);
-            fullFileString.append("__WEAVE.__WEAVE_PROCESS_START(" + getPIDFromIDX(processIdx) + ")\n");
-            String filename = this.getFilenameFromIdx(processIdx);
+            fullFileString.append("__WEAVE.__WEAVE_PROCESS_START(" + processIdx + ")\n");
+
+            String filename = this.projectName + "_PROCESS_" + processIdx + ".py";
             String fullFilepath = this.projectDir + FileSystems.getDefault().getSeparator() + filename;
             Path path = Paths.get(fullFilepath);
-
-            // output one function per block
-            for (int blockIdx = 0; blockIdx < process.largestIndex+1; ++blockIdx) {
+            for (int blockIdx = 0; blockIdx < process.largestIndex + 1; ++blockIdx) {
                 Block block = process.blocks[blockIdx];
-                fullFileString.append("def " + getBlockFuctionStringFromIdx(blockIdx) + ":\n    ");
-                if (block != null) {
+
+                fullFileString.append("def process_func_block_" + (blockIdx) + "():\n    "); if (block != null) {
                     StringBuilder blockContentStr = block.fileContents;
                     for (int charIdx = 0; charIdx < blockContentStr.length(); ++charIdx) {
                         char c = blockContentStr.charAt(charIdx);
@@ -98,52 +86,12 @@ public class Scheduler {
                 fullFileString.append("\n\n");
             }
 
-            // output all function calls
-            for (int blockIdx = 0; blockIdx < process.largestIndex; ++blockIdx) {
-                fullFileString.append(getBlockFuctionStringFromIdx(blockIdx) + "\n");
-                fullFileString.append("__WEAVE.__WEAVE_WAIT_TILL_SCHEDULED()\n");
-            }
-
-            // the last one doesn't need to wait
-            fullFileString.append(getBlockFuctionStringFromIdx(process.largestIndex) + "\n");
             fullFileString.append(PROCESS_FILE_FOOTER);
             try {
-                Files.write(path, fullFileString.toString().getBytes(),
-                        StandardOpenOption.WRITE,
-                        StandardOpenOption.CREATE,
-                        StandardOpenOption.TRUNCATE_EXISTING,
-                        StandardOpenOption.SYNC);
+                Files.write(path, fullFileString.toString().getBytes());
             } catch (IOException e) {
                 System.err.println("FAILED TO SAVE A PROCESS FILE TO DISK!!");
             }
-        }
-
-    }
-
-    public void runProcesses(ArrayList<WeaveProcess> processes) {
-        this.writeProcessesToDisk(processes);
-        SharedMemory s = SharedMemory.SharedMemory();
-        int[] pids = new int[processes.size()];
-        for (int i = 0; i < processes.size(); ++i) {
-            int pid = getPIDFromIDX(i);
-            SharedMemory.WaitForProcess(pid);
-            pids[i] = pid;
-        }
-
-        for (int i = 0; i < processes.size(); ++i) {
-            String pythonFile = this.projectDir + "/" + this.getFilenameFromIdx(i);
-            SharedMemory.CreatePythonProcess(pythonFile);
-        }
-
-        while (!s.allProcessesFinished(pids)) {
-            s.RunPidsAndWait(pids);
-        }
-
-        // NOTE(Ray): Need to release all mutexes here, since on when we enter the function again we will try to aquire
-        //  a mutex that we already own and we will deadlock
-
-        for (int i = 0; i < processes.size(); ++i) {
-            SharedMemory.ReleaseProcess(getPIDFromIDX(i));
         }
     }
 }

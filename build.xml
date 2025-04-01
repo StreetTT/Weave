@@ -137,7 +137,7 @@
             <arg value="/I${java.home}\include"/>
             <arg value="/I${java.home}\include\win32"/>
             <arg value="/LD"/>
-            <arg value="${src.dir}/shared_map.c"/>
+            <arg value="shared_map.c"/>
             <arg value="Kernel32.lib"/>
         </exec>
         <copy file="build/shared_map.dll" todir="${lib.dir}"/>

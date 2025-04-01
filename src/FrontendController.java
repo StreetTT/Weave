@@ -52,8 +52,4 @@ public class FrontendController {
 
         System.out.println("Added process " + processContainer.getChildren().size());
     }
-
-    public void runProcesses() {
-        Scheduler.Scheduler().runProcesses(Frontend.processes);
-    }
 }

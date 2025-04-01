@@ -30,7 +30,7 @@
                 </Menu>
                 <Menu mnemonicParsing="false" text="Run">
                   <items>
-                      <MenuItem mnemonicParsing="false" onAction="#runProcesses" text="Run all" />
+                      <MenuItem mnemonicParsing="false" text="Run all" />
                       <MenuItem mnemonicParsing="false" text="Run Selected" />
                   </items>
                 </Menu>

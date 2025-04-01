@@ -6,13 +6,9 @@ public class SharedMemory {
     static private native void AlocWeaveSharedBuffer();
     static private native ByteBuffer GetSignalArray();
     static public native void FreeWeaveSharedBuffer();
-    static public native void ReleaseProcess(int pid);
-    static public native void WaitForProcess(int pid);
+    static private native void ReleaseProcess(int pid);
+    static private native void WaitForProcess(int pid);
     static public native long CreatePythonProcess(String process);
-
-    private static final int PROCESS_SLEEPING = 0;
-    private static final int PROCESS_AQUIRED = 1;
-    private static final int PROCESS_FINISHED = 2;
 
     private static SharedMemory singletonRef;
     private ByteBuffer signalArray;
@@ -31,52 +27,30 @@ public class SharedMemory {
     }
 
     public void RunPidsAndWait(int[] pids) {
-        int activeProcesses[] = new int[pids.length];
-        int activeProcessesCount = 0;
-
         for (int i = 0; i < pids.length; ++i) {
-            if (this.signalArray.get(pids[i]) != PROCESS_FINISHED) {
-                activeProcesses[activeProcessesCount++] = pids[i];
-            }
-        }
-
-        for (int i = 0; i < activeProcessesCount; ++i) {
-            SharedMemory.ReleaseProcess(activeProcesses[i]);
+            SharedMemory.ReleaseProcess(pids[i]);
         }
 
         boolean allSignaled = false;
         // spinlock until all mutexes have been aqquired on the python side
         while (!allSignaled) {
             allSignaled = true;
-            for (int i = 0; i < activeProcessesCount; ++i) {
-                if (this.signalArray.get(activeProcesses[i]) == PROCESS_SLEEPING) {
+            for (int i = 0; i < pids.length; ++i) {
+                if (this.signalArray.get(pids[i]) == 0) {
                     allSignaled = false;
                 }
             }
         }
 
-        for (int i = 0; i < activeProcessesCount; ++i) {
-            WaitForProcess(activeProcesses[i]);
+        for (int i = 0; i < pids.length; ++i) {
+            WaitForProcess(pids[i]);
         }
 
         // reset the signal
-        for (int i = 0; i < activeProcessesCount; ++i) {
-            if (this.signalArray.get(activeProcesses[i]) == PROCESS_FINISHED) {
-                continue;
-            }
-
-            this.signalArray.put(activeProcesses[i], (byte)0);
-        }
-    }
-
-    public boolean allProcessesFinished(int[] pids) {
         for (int i = 0; i < pids.length; ++i) {
-            if (this.signalArray.get(pids[i]) != PROCESS_FINISHED) {
-                return false;
-            }
+            this.signalArray.put(pids[i], (byte)0);
         }
 
-        return true;
     }
 
     static {
@@ -88,13 +62,13 @@ public class SharedMemory {
     //TODO(Ray): Move testing code out of main
     public static void main(String args[]) {
         SharedMemory s = SharedMemory.SharedMemory();
-        ByteBuffer signalArray = s.signalArray;
+        ByteBuffer signalArray = SharedMemory.GetSignalArray();
 
         SharedMemory.WaitForProcess(1);
         SharedMemory.WaitForProcess(2);
 
         for (int i = 0; i < signalArray.capacity(); ++i) {
-            signalArray.put(i, (byte)0);
+            System.out.print(signalArray.get(i));
         }
 
         for (int i = 0; i < signalArray.capacity(); ++i) {
@@ -104,8 +78,8 @@ public class SharedMemory {
         System.out.println();
         System.out.println("------------------------------------");
 
-        long p1 = SharedMemory.CreatePythonProcess("pyTest/program1.py");
-        long p2 = SharedMemory.CreatePythonProcess("pyTest/program2.py");
+        long p1 = SharedMemory.CreatePythonProcess("testproj/program1.py");
+        long p2 = SharedMemory.CreatePythonProcess("testproj/program2.py");
 
         s.RunPidsAndWait(new int[]{2});
 

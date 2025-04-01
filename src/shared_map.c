@@ -63,9 +63,8 @@ JNIEXPORT void JNICALL Java_SharedMemory_CreatePythonProcess(JNIEnv *env, jclass
 
         STARTUPINFO si = {sizeof(si)};
         PROCESS_INFORMATION pi;
-        if (!CreateProcessA(0, full_process_str, 0, 0, TRUE, NORMAL_PRIORITY_CLASS, 0, 0, &si, &pi)) {
-            fprintf(stderr, "C ERROR: Error creating process");
-        }
+        CreateProcessA(0, full_process_str, 0, 0, TRUE, NORMAL_PRIORITY_CLASS, 0, 0, &si,
+                       &pi);
 }
 
 EXPORT void python_mutex_lock(void *mutex) {
