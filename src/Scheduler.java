@@ -8,6 +8,7 @@ public class Scheduler {
     private static final String PROCESS_FILE_HEADER = "import weave_shared as __WEAVE\n";
     private static final String PROCESS_FILE_FOOTER = "__WEAVE.__WEAVE_PROCESS_END()";
     private static final String FUNCTION_HEADER = "process_func_block_";
+    private static final String DIRECTORY_SEPERATOR = FileSystems.getDefault().getSeparator();
     public String projectName;
     public String projectDir;
   
@@ -56,7 +57,17 @@ public class Scheduler {
         return i + 1;
     }
 
-    public void writeProcessesToDisk(ArrayList<WeaveProcess> processes) {
+    public void writeProcessesToDisk(ArrayList<WeaveProcess> processes, String directoryName) {
+        String directoryPath = this.projectDir + DIRECTORY_SEPERATOR + directoryName;
+
+        try {
+            Files.createDirectories(Paths.get(directoryPath));
+        } catch (IOException e) {
+            //NOTE:(Ray) Files.createDirectories will NOT throw if the directory already exists
+            System.err.println("FAILED TO CREATE DIRECTORIES WHEN SAVING PROCESS TO DISK");
+            e.printStackTrace();
+        }
+
         for (int processIdx = 0; processIdx < processes.size(); ++processIdx) {
             //output the headers
             WeaveProcess process = processes.get(processIdx);
@@ -64,9 +75,11 @@ public class Scheduler {
             fullFileString.append(PROCESS_FILE_HEADER);
             fullFileString.append("__WEAVE.__WEAVE_PROCESS_START(" + getPIDFromIDX(processIdx) + ")\n");
             String filename = this.getFilenameFromIdx(processIdx);
-            String fullFilepath = this.projectDir + FileSystems.getDefault().getSeparator() + filename;
+
+            String fullFilepath = directoryPath + DIRECTORY_SEPERATOR + filename;
             Path path = Paths.get(fullFilepath);
 
+             //TODO:(Ray) Have exceptions throw up error windows in javafx
             // output one function per block
             for (int blockIdx = 0; blockIdx < process.largestIndex+1; ++blockIdx) {
                 Block block = process.blocks[blockIdx];
@@ -114,12 +127,14 @@ public class Scheduler {
                         StandardOpenOption.SYNC);
             } catch (IOException e) {
                 System.err.println("FAILED TO SAVE A PROCESS FILE TO DISK!!");
+                e.printStackTrace();
             }
         }
     }
 
     public void runProcesses(ArrayList<WeaveProcess> processes) {
-        this.writeProcessesToDisk(processes);
+        final String outputDir = "outFiles";
+        this.writeProcessesToDisk(processes, outputDir);
         SharedMemory s = SharedMemory.SharedMemory();
         int[] pids = new int[processes.size()];
         for (int i = 0; i < processes.size(); ++i) {
@@ -129,8 +144,9 @@ public class Scheduler {
         }
 
         for (int i = 0; i < processes.size(); ++i) {
-            String pythonFile = this.projectDir + "/" + this.getFilenameFromIdx(i);
-            SharedMemory.CreatePythonProcess(pythonFile);
+            // don't need to use default file seperator here, the native C code will do the conversion for us
+            String pythonFile = this.projectDir + "/" + outputDir + "/" + this.getFilenameFromIdx(i);
+            s.CreatePythonProcess(pids[i], pythonFile);
         }
 
         while (!s.allProcessesFinished(pids)) {

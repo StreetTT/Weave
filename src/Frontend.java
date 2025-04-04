@@ -40,7 +40,7 @@ public class Frontend extends Application {
     }
 
     public void closeFunction(WindowEvent e) {
-        Scheduler.Scheduler().writeProcessesToDisk(processes);
+        Scheduler.Scheduler().writeProcessesToDisk(processes, "sourceFiles");
         SharedMemory.FreeWeaveSharedBuffer();
     }
 
