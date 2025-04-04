@@ -1,4 +1,5 @@
 #include <jni.h>
+#include "SharedMemory.h"
 
 #include <stdint.h>
 #include <Windows.h>
@@ -48,7 +49,7 @@ JNIEXPORT void JNICALL Java_SharedMemory_ReleaseProcess(JNIEnv *env, jclass cls,
         ReleaseSemaphore(pid_to_mutex(mutex_array, pid), 1, 0);
 }
 
-JNIEXPORT void JNICALL Java_SharedMemory_CreatePythonProcess(JNIEnv *env, jclass cls, jstring filename) {
+JNIEXPORT jlong JNICALL Java_SharedMemory_CreatePythonProcess(JNIEnv *env, jclass cls, jstring filename) {
         const char *c_filename = (*env)->GetStringUTFChars(env, filename, 0);
 
         char full_process_str[4096] = "python ";
@@ -66,6 +67,21 @@ JNIEXPORT void JNICALL Java_SharedMemory_CreatePythonProcess(JNIEnv *env, jclass
         if (!CreateProcessA(0, full_process_str, 0, 0, TRUE, NORMAL_PRIORITY_CLASS, 0, 0, &si, &pi)) {
             fprintf(stderr, "C ERROR: Error creating process");
         }
+
+        return (long)pi.hProcess;
+}
+
+JNIEXPORT jlong JNICALL Java_SharedMemory_isProcessAlive(JNIEnv *env, jclass cls, jlong pHandle) {
+        DWORD exit_code;
+        if (GetExitCodeProcess(pHandle, &exit_code)) {
+                if (exit_code == STILL_ACTIVE) {
+                    return TRUE;
+                } else {
+                    return FALSE;
+                }
+        }
+
+        return FALSE;
 }
 
 EXPORT void python_mutex_lock(void *mutex) {

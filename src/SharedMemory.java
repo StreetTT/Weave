@@ -8,7 +8,8 @@ public class SharedMemory {
     static public native void FreeWeaveSharedBuffer();
     static public native void ReleaseProcess(int pid);
     static public native void WaitForProcess(int pid);
-    static public native long CreatePythonProcess(String process);
+    static private native long CreatePythonProcess(String process);
+    static private native boolean isProcessAlive(long pHandle);
 
     private static final int PROCESS_SLEEPING = 0;
     private static final int PROCESS_AQUIRED = 1;
@@ -16,10 +17,12 @@ public class SharedMemory {
 
     private static SharedMemory singletonRef;
     private ByteBuffer signalArray;
+    private long[] processHandles;
 
     private SharedMemory() {
         SharedMemory.AlocWeaveSharedBuffer();
         this.signalArray = SharedMemory.GetSignalArray();
+        this.processHandles = new long[256];
     };
 
     static public SharedMemory SharedMemory() {
@@ -49,6 +52,12 @@ public class SharedMemory {
         while (!allSignaled) {
             allSignaled = true;
             for (int i = 0; i < activeProcessesCount; ++i) {
+                // check if process ungracefully terminated
+                if (!isProcessAlive(this.processHandles[activeProcesses[i]])) {
+                    this.signalArray.put(activeProcesses[i], (byte)PROCESS_FINISHED); // set process to finished
+                    continue;
+                }
+
                 if (this.signalArray.get(activeProcesses[i]) == PROCESS_SLEEPING) {
                     allSignaled = false;
                 }
@@ -67,6 +76,11 @@ public class SharedMemory {
 
             this.signalArray.put(activeProcesses[i], (byte)0);
         }
+    }
+
+    public void CreatePythonProcess(int pid, String process) {
+        long procesHandle = SharedMemory.CreatePythonProcess(process);
+        processHandles[pid] = procesHandle;
     }
 
     public boolean allProcessesFinished(int[] pids) {

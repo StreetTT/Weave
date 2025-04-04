@@ -127,8 +127,8 @@
     <target name="compile-c" if="is.windows">
         <exec executable="javac">
             <arg value="-h"/>
-            <arg value="./"/>
-            <arg value="SharedMemory.java"/>
+            <arg value="${src.dir}"/>
+            <arg value="${src.dir}/SharedMemory.java"/>
         </exec>
         <exec executable="cl">
             <arg value="/Febuild\"/>
