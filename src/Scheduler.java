@@ -44,7 +44,6 @@ public class Scheduler {
             return new StringBuilder();
         }
     }
-
     private String getFilenameFromIdx(int idx) {
         return this.projectName + "_PROCESS_" + (idx + 1) + ".py";
     }
@@ -117,7 +116,6 @@ public class Scheduler {
                 System.err.println("FAILED TO SAVE A PROCESS FILE TO DISK!!");
             }
         }
-
     }
 
     public void runProcesses(ArrayList<WeaveProcess> processes) {

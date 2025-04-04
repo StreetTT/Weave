@@ -25,31 +25,8 @@ public class FrontendController {
         WeaveProcess process = new WeaveProcess();
         Frontend.processes.add(process);
 
-        /*HBoxRow newRow = new HBoxRow(
-            Frontend.processes.get(Frontend.processes.size() - 1)
-            );*/
-
         GridPaneRow newRow = new GridPaneRow(process);
-        /*
-
-
-        for (int i = 0; i < 7; i++){
-            Button plusButton = new Button("+");
-            plusButton.setPrefWidth(40);
-            plusButton.setPrefHeight(30);
-            newRow.getChildren().add(plusButton);
-        }
-
-
-        Button addedProcessButton = new Button("Added Process");
-        addedProcessButton.setPrefWidth(120);
-        addedProcessButton.setPrefHeight(30);
-        newRow.getChildren().add(addedProcessButton);
-
-         */
-
         processContainer.getChildren().add(newRow);
-
         System.out.println("Added process " + processContainer.getChildren().size());
     }
 

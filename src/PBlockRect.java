@@ -1,6 +1,7 @@
-import javafx.event.EventHandler;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 
 public class PBlockRect extends Rectangle {
@@ -12,12 +13,12 @@ public class PBlockRect extends Rectangle {
     private int pos;
     private PopupEditor editor;
 
+    static final public Image fillImage = new Image("./assets/plus-icon.png",  50, 0, false, false);
 
     public PBlockRect(WeaveProcess process, int pos) {
         super(BLOCK_WIDTH, BLOCK_HEIGHT);
         this.pos = pos;
         this.process = process;
-        setFill(Color.LIGHTGRAY);
 
         setOnMouseClicked(this::handleClick);
         setOnMousePressed(this::handlePressed);
@@ -41,14 +42,16 @@ public class PBlockRect extends Rectangle {
         }
 
     private void handlePressed(MouseEvent event) {
-        setFill(Color.BLACK);
+        if (this.editor != null) {
+            setFill(Color.BLACK);
+        }
     }
 
     private void handleRelease(MouseEvent event) {
         if (this.block != null) {
             this.setFill(Color.GREEN);
         } else {
-            this.setFill(Color.RED);
+            this.setFill(new ImagePattern(PBlockRect.fillImage));
         }
     }
 
