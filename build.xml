@@ -6,6 +6,7 @@
     <property name="src.dir" value="src"/>
     <property name="test.dir" value="test"/>
     <property name="lib.dir" value="lib"/>
+	<property name="javafx.lib.3rdParty" value="${lib.dir}/JFX"/>
     <property name="javafx.version" value="21.0.6"/>
     <property name="test.reports.dir" value="test-reports"/>
     <condition property="junit.jar"
@@ -47,6 +48,7 @@
             <classpath>
                 <fileset dir="${javafx.lib.dir}" includes="*.jar"/>
                 <fileset dir="${lib.dir}" includes="shared_map.*"/>
+				<fileset dir="${javafx.lib.3rdParty}" includes="*.jar"/>
             </classpath>
         </javac>
     </target>
