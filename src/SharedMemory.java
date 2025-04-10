@@ -3,13 +3,16 @@ import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 
 public class SharedMemory {
-    static private native void AlocWeaveSharedBuffer();
+    static private native void Init();
     static private native ByteBuffer GetSignalArray();
-    static public native void FreeWeaveSharedBuffer();
+    static public native void DeInit();
     static public native void ReleaseProcess(int pid);
     static public native void WaitForProcess(int pid);
+    static public native ByteBuffer GetProcessesOutput();
     static private native long CreatePythonProcess(String process);
     static private native boolean isProcessAlive(long pHandle);
+    static public native void ReaderThreadStart();
+    static public native void ReaderThreadStop();
 
     private static final int PROCESS_SLEEPING = 0;
     private static final int PROCESS_AQUIRED = 1;
@@ -20,7 +23,7 @@ public class SharedMemory {
     private long[] processHandles;
 
     private SharedMemory() {
-        SharedMemory.AlocWeaveSharedBuffer();
+        SharedMemory.Init();
         this.signalArray = SharedMemory.GetSignalArray();
         this.processHandles = new long[256];
     };
@@ -147,6 +150,6 @@ public class SharedMemory {
         System.out.println();
         System.out.println("------------------------------------");
 
-        SharedMemory.FreeWeaveSharedBuffer();
+        SharedMemory.DeInit();
     }
 }

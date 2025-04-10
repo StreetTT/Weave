@@ -7,12 +7,18 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef SharedMemory_PROCESS_SLEEPING
+#define SharedMemory_PROCESS_SLEEPING 0L
+#undef SharedMemory_PROCESS_AQUIRED
+#define SharedMemory_PROCESS_AQUIRED 1L
+#undef SharedMemory_PROCESS_FINISHED
+#define SharedMemory_PROCESS_FINISHED 2L
 /*
  * Class:     SharedMemory
- * Method:    AlocWeaveSharedBuffer
+ * Method:    Init
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_SharedMemory_AlocWeaveSharedBuffer
+JNIEXPORT void JNICALL Java_SharedMemory_Init
   (JNIEnv *, jclass);
 
 /*
@@ -25,10 +31,10 @@ JNIEXPORT jobject JNICALL Java_SharedMemory_GetSignalArray
 
 /*
  * Class:     SharedMemory
- * Method:    FreeWeaveSharedBuffer
+ * Method:    DeInit
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_SharedMemory_FreeWeaveSharedBuffer
+JNIEXPORT void JNICALL Java_SharedMemory_DeInit
   (JNIEnv *, jclass);
 
 /*
@@ -49,11 +55,43 @@ JNIEXPORT void JNICALL Java_SharedMemory_WaitForProcess
 
 /*
  * Class:     SharedMemory
+ * Method:    GetProcessesOutput
+ * Signature: ()Ljava/nio/ByteBuffer;
+ */
+JNIEXPORT jobject JNICALL Java_SharedMemory_GetProcessesOutput
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     SharedMemory
  * Method:    CreatePythonProcess
  * Signature: (Ljava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_SharedMemory_CreatePythonProcess
   (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     SharedMemory
+ * Method:    isProcessAlive
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_SharedMemory_isProcessAlive
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     SharedMemory
+ * Method:    ReaderThreadStart
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_SharedMemory_ReaderThreadStart
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     SharedMemory
+ * Method:    ReaderThreadStop
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_SharedMemory_ReaderThreadStop
+  (JNIEnv *, jclass);
 
 #ifdef __cplusplus
 }

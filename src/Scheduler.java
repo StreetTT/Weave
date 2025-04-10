@@ -1,5 +1,7 @@
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.ArrayList;
 
@@ -137,12 +139,14 @@ public class Scheduler {
         this.writeProcessesToDisk(processes, outputDir);
         SharedMemory s = SharedMemory.SharedMemory();
         int[] pids = new int[processes.size()];
+
         for (int i = 0; i < processes.size(); ++i) {
             int pid = getPIDFromIDX(i);
             SharedMemory.WaitForProcess(pid);
             pids[i] = pid;
         }
 
+        SharedMemory.ReaderThreadStart();
         for (int i = 0; i < processes.size(); ++i) {
             // don't need to use default file seperator here, the native C code will do the conversion for us
             String pythonFile = this.projectDir + "/" + outputDir + "/" + this.getFilenameFromIdx(i);
@@ -159,5 +163,10 @@ public class Scheduler {
         for (int i = 0; i < processes.size(); ++i) {
             SharedMemory.ReleaseProcess(getPIDFromIDX(i));
         }
+
+        SharedMemory.ReaderThreadStop();
+        ByteBuffer buffer = SharedMemory.GetProcessesOutput();
+        System.out.println(StandardCharsets.UTF_8.decode(buffer));
+
     }
 }

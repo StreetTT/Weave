@@ -9,7 +9,7 @@ public class PBlockRect extends Rectangle {
     private static final int BLOCK_WIDTH = 50;
     private static final int BLOCK_HEIGHT = 50;
     private final WeaveProcess process;
-    private Block block;
+    public Block block;
     private int pos;
     private PopupEditor editor;
 
@@ -26,24 +26,24 @@ public class PBlockRect extends Rectangle {
     }
 
     private void handleClick(MouseEvent event) {
-            System.out.println("MOUSE CLICKED");
-            if (event.getClickCount() == 2) {
-                if (this.block != null) {
-                    if (this.editor == null) {
-                        this.editor = new PopupEditor(this.block);
-                    }
-
-                    this.editor.showPopup();
-                } else {
-                    this.block = process.addBlock(this.pos);
-                    setFill(Color.GREEN);
+        System.out.println("MOUSE CLICKED");
+        if (event.getClickCount() == 2) {
+            if (this.block != null) {
+                if (this.editor == null) {
+                    this.editor = new PopupEditor(this.block);
                 }
+
+                this.editor.showPopup();
+            } else {
+                this.block = process.addBlock(this.pos);
+                setFill(Color.GREEN);
             }
         }
+    }
 
     private void handlePressed(MouseEvent event) {
-        if (this.editor != null) {
-            setFill(Color.BLACK);
+        if (this.block != null) {
+            setFill(new Color(0, 0.3, 0, 1));
         }
     }
 
