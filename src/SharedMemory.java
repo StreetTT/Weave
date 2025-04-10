@@ -86,6 +86,12 @@ public class SharedMemory {
         processHandles[pid] = procesHandle;
     }
 
+    public void resetSignalArray(int[] pids) {
+        for (int i = 0; i < pids.length; ++i) {
+            this.signalArray.put(pids[i], (byte)PROCESS_SLEEPING);
+        }
+    }
+
     public boolean allProcessesFinished(int[] pids) {
         for (int i = 0; i < pids.length; ++i) {
             if (this.signalArray.get(pids[i]) != PROCESS_FINISHED) {

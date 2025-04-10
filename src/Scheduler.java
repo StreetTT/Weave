@@ -161,6 +161,8 @@ public class Scheduler {
             s.RunPidsAndWait(pids);
         }
 
+        SharedMemory.ReaderThreadStop(); // Call this otherwise thread is just wasting system resources
+
         // NOTE(Ray): Need to release all mutexes here, since on when we enter the function again we will try to aquire
         //  a mutex that we already own and we will deadlock
 
@@ -168,7 +170,7 @@ public class Scheduler {
             SharedMemory.ReleaseProcess(getPIDFromIDX(i));
         }
 
-        SharedMemory.ReaderThreadStop(); // Call this otherwise thread is just wasting system resources
+        s.resetSignalArray(pids);
 
         ByteBuffer buffer = SharedMemory.GetProcessesOutput();
         System.out.println(StandardCharsets.UTF_8.decode(buffer));
