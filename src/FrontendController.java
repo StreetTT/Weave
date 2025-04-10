@@ -25,7 +25,13 @@ public class FrontendController {
         WeaveProcess process = new WeaveProcess();
         Frontend.processes.add(process);
 
-        GridPaneRow newRow = new GridPaneRow(process);
+        ProcessRow newRow = new ProcessRow(process);
+
+        newRow.button.setOnAction(e -> {
+                    processContainer.getChildren().remove(newRow);
+                    Frontend.processes.remove(process);
+        });
+
         processContainer.getChildren().add(newRow);
         System.out.println("Added process " + processContainer.getChildren().size());
     }

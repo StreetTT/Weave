@@ -4,11 +4,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-
 import java.util.ArrayList;
 
-//NOTE(Ray) *MAYBE IMPLEMENT* Javafx cannot render all process and blocks using gridPane may have to use canvas so
-// we can dynamically render grid blocks on a scrolling pane
 public class Frontend extends Application {
 
     static public ArrayList<WeaveProcess> processes = new ArrayList<>();

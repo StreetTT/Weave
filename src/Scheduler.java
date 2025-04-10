@@ -146,6 +146,10 @@ public class Scheduler {
             pids[i] = pid;
         }
 
+        //NOTE(Ray): Reader Thread sits in the background just polling to see if processes have written anything to stdout
+        // On windows, the stdout pipe will block all processes if it becomes full. The thread allows us to keep removing data
+        // from the pipe without introducing any extra waiting latency for the main thread or WEAVE processes.
+
         SharedMemory.ReaderThreadStart();
         for (int i = 0; i < processes.size(); ++i) {
             // don't need to use default file seperator here, the native C code will do the conversion for us
@@ -164,7 +168,8 @@ public class Scheduler {
             SharedMemory.ReleaseProcess(getPIDFromIDX(i));
         }
 
-        SharedMemory.ReaderThreadStop();
+        SharedMemory.ReaderThreadStop(); // Call this otherwise thread is just wasting system resources
+
         ByteBuffer buffer = SharedMemory.GetProcessesOutput();
         System.out.println(StandardCharsets.UTF_8.decode(buffer));
 
