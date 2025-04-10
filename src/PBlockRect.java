@@ -13,6 +13,7 @@ public class PBlockRect extends Rectangle {
     private int pos;
     private PopupEditor editor;
 
+
     static final public Image fillImage = new Image("./assets/plus-icon.png",  50, 0, false, false);
 
     public PBlockRect(WeaveProcess process, int pos) {

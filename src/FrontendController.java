@@ -6,6 +6,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import com.jfoenix.controls.*;
 
 import java.util.ArrayList;
 
@@ -14,11 +15,14 @@ import java.util.ArrayList;
 
 public class FrontendController {
     @FXML
-    private Button newBlockButton;
-    @FXML
     private VBox processContainer;
     @FXML
     private Region spacer;
+
+    public void initialize(){
+        //adds the first row by defult
+        addRow();
+    }
 
     public void addRow() {
         // Create a new row
@@ -27,7 +31,7 @@ public class FrontendController {
 
         ProcessRow newRow = new ProcessRow(process);
 
-        newRow.button.setOnAction(e -> {
+        newRow.deleteButton.setOnAction(e -> {
                     processContainer.getChildren().remove(newRow);
                     Frontend.processes.remove(process);
         });
