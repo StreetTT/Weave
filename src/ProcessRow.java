@@ -4,12 +4,14 @@ import javafx.scene.control.Label;
 import com.jfoenix.controls.*;
 import javafx.geometry.*;
 
+import javax.lang.model.AnnotatedConstruct;
 import javax.swing.*;
 
 public class ProcessRow extends HBox {
 
     public JFXButton deleteButton;
 
+    //TODO: make the row dynamically change size when resized
     public ProcessRow(WeaveProcess process) {
         //styling for row
         this.setPadding(new Insets(10));
@@ -31,16 +33,20 @@ public class ProcessRow extends HBox {
 
 
         //Top bar with delete and (TODO: MAkE Run button)
-        HBox topBar = new HBox();
-        topBar.setAlignment(Pos.TOP_LEFT);
+        AnchorPane topBar = new AnchorPane();
+        topBar.setPrefHeight(30);
 
         this.deleteButton = new JFXButton("X");
+        deleteButton.setRotate(90);
         deleteButton.setStyle(
                 "-fx-background-color: #e57373;" +
                         "-fx-text-fill: white;" +
-                        "-fx-background-radius: 0 15 15 0;" + // Rounded on top-right and bottom-right
+                        "-fx-background-radius: 0 15 15 0;" +
                         "-fx-padding: 4 10 4 10;"
         );
+
+        deleteButton.setTranslateY(-15);
+        AnchorPane.setLeftAnchor(deleteButton, 10.0);
 
         topBar.getChildren().add(deleteButton);
 
@@ -52,7 +58,7 @@ public class ProcessRow extends HBox {
                         "-fx-font-size: 14px;" +
                         "-fx-background-radius: 5;"
         );
-        processName.setMaxWidth(Double.MAX_VALUE);
+        processName.setPrefWidth(200);
 
         //row of processes inside the rectangle
         GridPaneRow newRow = new GridPaneRow(process);
