@@ -1,6 +1,7 @@
-import javafx.geometry.Insets;
 import javafx.scene.layout.*;
-import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+
 import com.jfoenix.controls.*;
 import javafx.geometry.*;
 
@@ -11,25 +12,22 @@ public class ProcessRow extends HBox {
 
     public JFXButton deleteButton;
     public JFXButton runButton;
-
+    public JFXButton selectButton;
+    public boolean selected = true;
+    VBox roundedContainer;
+    WeaveProcess process;
     //TODO: make the row dynamically change size when resized
 
-    public ProcessRow(WeaveProcess process) {
+    public ProcessRow(WeaveProcess p) {
+        process = p;
         //styling for row
         this.setPadding(new Insets(10));
         this.setAlignment(Pos.CENTER_LEFT);
 
         //coinatiner for a rounded rectangle look
-        VBox roundedContainer = new VBox();
+        roundedContainer = new VBox();
         roundedContainer.setSpacing(10);
         roundedContainer.setPadding(new Insets(15));
-        roundedContainer.setStyle(
-                "-fx-background-color: #ffffff;" +
-                        "-fx-background-radius: 15px;" +
-                        "-fx-border-radius: 15px;" +
-                        "-fx-border-color: #cccccc;" +
-                        "-fx-border-width: 1px;"
-        );
         roundedContainer.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(roundedContainer,Priority.ALWAYS);
 
@@ -65,22 +63,36 @@ public class ProcessRow extends HBox {
 
         runButton.setTranslateY(-15);
         AnchorPane.setLeftAnchor(runButton, 50.0);
+        
+        this.selectButton = new JFXButton("");
+        selectButton.setRotate(90);
+        handleSelect();
 
+        selectButton.setTranslateY(-15);
+        AnchorPane.setLeftAnchor(selectButton, 90.0);
 
-        topBar.getChildren().addAll(deleteButton, runButton);
+        topBar.getChildren().addAll(deleteButton, runButton, selectButton);
 
         // CONTENT BOX AREA
 
         //showing name of proces(TODO: link name to procces)
-        Label processName = new Label("EXAMPLE PROCESS NAME");
+        TextField processName = new TextField("");
+        processName.setPromptText("Process Name");
         processName.setStyle(
                 "-fx-background-color: #eeeeee;" +
                         "-fx-padding: 10;" +
                         "-fx-font-size: 14px;" +
                         "-fx-background-radius: 5;"
         );
-
+        processName.textProperty().addListener((obs, old, newVal) -> {
+                process.setName(newVal);
+            });
         processName.setMinWidth(200);
+        processName.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                processName.getParent().requestFocus();
+            }
+        });
 
         //row of processes inside the rectangle
         GridPaneRow newRow = new GridPaneRow(process);
@@ -97,5 +109,42 @@ public class ProcessRow extends HBox {
         //put all of the objects together
         roundedContainer.getChildren().addAll(topBar, contentBox);
         this.getChildren().add(roundedContainer);
+    }
+
+    public void handleSelect() {
+        if (selected) {
+            selectButton.setStyle(
+                "-fx-background-color:rgb(45, 47, 45);" +
+                "-fx-text-fill: white;" +
+                "-fx-background-radius: 0 15 15 0;" +
+                "-fx-padding: 4 10 4 10;" + 
+                "-fx-font-size: 1em;"
+            );
+            selectButton.setText("◌");
+            roundedContainer.setStyle(
+                "-fx-background-color: #ffffff;" +
+                "-fx-background-radius: 15px;" +
+                "-fx-border-radius: 15px;" +
+                "-fx-border-color: #cccccc;" +
+                "-fx-border-width: 1px;"
+            );
+            selected = false;
+        } else {
+            selectButton.setStyle(
+                "-fx-background-color:rgb(132, 215, 253);" +
+                "-fx-text-fill: black;" +
+                "-fx-background-radius: 0 15 15 0;" +
+                "-fx-padding: 4 10 4 10;" 
+            );
+            selectButton.setText("●");
+            roundedContainer.setStyle(
+                "-fx-background-color:#394346;" +
+                "-fx-background-radius: 15px;" +
+                "-fx-border-radius: 15px;" +
+                "-fx-border-color:rgb(0, 0, 0);" +
+                "-fx-border-width: 1px;"
+            );
+            selected = true; 
+        }
     }
 }

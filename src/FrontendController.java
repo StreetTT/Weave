@@ -19,6 +19,7 @@ public class FrontendController {
     @FXML
     private Region spacer;
     private PBlockRect selectedRect;
+    private ArrayList<ProcessRow> selectedProcesses = new ArrayList<>();
 
     public void initialize(){
         //adds the first row by defult
@@ -36,12 +37,35 @@ public class FrontendController {
                     processContainer.getChildren().remove(newRow);
                     Frontend.processes.remove(process);
         });
+        newRow.selectButton.setOnAction(e -> {
+            newRow.handleSelect();
+            if (newRow.selected) {
+                selectedProcesses.add(newRow); // Add to selected processes
+                System.out.println("SELECTED PROCESS");
+            } else {
+                selectedProcesses.remove(newRow); // Remove from selected processes
+                System.out.println("DESELECTED PROCESS");
+            }
+        });
 
         processContainer.getChildren().add(newRow);
-        System.out.println("Added process " + processContainer.getChildren().size());
+        System.out.println("ADDED PROCESS " + processContainer.getChildren().size());
     }
 
     public void runProcesses() {
-        Scheduler.Scheduler().runProcesses(Frontend.processes);
+        runProcesses(true);  
+    }
+    
+    public void runProcesses(boolean all) {
+        if (all ) {
+            Scheduler.Scheduler().runProcesses(Frontend.processes);
+        } else {
+            ArrayList<WeaveProcess> selectedWeaveProcesses = new ArrayList<>();
+            for (ProcessRow row : selectedProcesses) {
+                selectedWeaveProcesses.add(row.process);
+            }
+            Scheduler.Scheduler().runProcesses(selectedWeaveProcesses);
+        }
+        
     }
 }

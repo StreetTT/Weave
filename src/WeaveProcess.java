@@ -2,6 +2,7 @@ public class WeaveProcess {
     public static final int MAX_BLOCKS = 1024;
     public Block[] blocks;
     int largestIndex = 0;
+    String name = "";
 
     public WeaveProcess() {
         this.blocks = new Block[1024];
@@ -55,5 +56,13 @@ public class WeaveProcess {
             blocks[i] = blocks[i + 1];
         }
         blocks[endPos] = null;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 }
