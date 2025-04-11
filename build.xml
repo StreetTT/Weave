@@ -136,6 +136,7 @@
             <arg value="/Febuild\"/>
             <arg value="/Fobuild\"/>
             <arg value="/Fdbuild\"/>
+            <arg value="/MT"/>
             <arg value="/I${java.home}\include"/>
             <arg value="/I${java.home}\include\win32"/>
             <arg value="/LD"/>

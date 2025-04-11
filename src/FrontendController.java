@@ -18,6 +18,7 @@ public class FrontendController {
     private VBox processContainer;
     @FXML
     private Region spacer;
+    private PBlockRect selectedRect;
 
     public void initialize(){
         //adds the first row by defult

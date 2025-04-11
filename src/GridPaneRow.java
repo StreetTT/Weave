@@ -48,7 +48,6 @@ public class GridPaneRow extends GridPane {
 
         this.setOnMousePressed(this::mouseOnPressHandler);
         this.setOnMouseReleased(this::dragAndDropHandler);
-        this.addEventFilter(KeyEvent.KEY_PRESSED, this::onKeyPressHandler);
     }
 
     private PBlockRect findRectFromCol(int col) {
@@ -68,9 +67,6 @@ public class GridPaneRow extends GridPane {
         boolean inYBounds = y < this.getHeight() || y >= 0;
 
         return inXBounds && inYBounds;
-    }
-
-    private void resetSelectedRect() {
     }
 
     private void mouseOnPressHandler(MouseEvent event) {
@@ -119,18 +115,5 @@ public class GridPaneRow extends GridPane {
         }
 
         dragRect = null;
-    }
-
-    private void onKeyPressHandler(KeyEvent event) {
-        if (event.isControlDown()) {
-            if (event.getCode() == KeyCode.C) {
-                copyRect = selectedRect;
-            }
-            if (event.getCode() == KeyCode.V)  {
-                selectedRect = copyRect;
-            }
-        }
-
-        // copy
     }
 }

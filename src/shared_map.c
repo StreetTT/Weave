@@ -1,9 +1,10 @@
 #include <jni.h>
-#include "SharedMemory.h"
 #include <stdint.h>
 #include <Windows.h>
 #include <string.h>
 #include <assert.h>
+
+#include "SharedMemory.h"
 
 #pragma comment (lib, "onecore")
 
