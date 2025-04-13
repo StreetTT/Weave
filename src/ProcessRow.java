@@ -85,7 +85,7 @@ public class ProcessRow extends HBox {
                         "-fx-background-radius: 5;"
         );
         processName.textProperty().addListener((obs, old, newVal) -> {
-                process.setName(newVal);
+                process.name = newVal;
             });
         processName.setMinWidth(200);
         processName.setOnKeyPressed(event -> {
