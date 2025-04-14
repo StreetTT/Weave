@@ -54,4 +54,13 @@ public class FrontendController {
     public void runSelectedProcesses() {
         Scheduler.Scheduler().runProcesses(selectedProcesses);
     }
+
+    public boolean  saveProjectAs(){
+        File file = Scheduler.Scheduler().showSaveDialogBox();
+        return Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, file);
+    }
+
+    public boolean  saveProject(){
+        return Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes);
+    }
 }

@@ -1,9 +1,12 @@
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.ArrayList;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 public class Scheduler {
     private static Scheduler singleton_ref = null;
@@ -59,8 +62,48 @@ public class Scheduler {
         return i + 1;
     }
 
-    public void writeProcessesToDisk(ArrayList<WeaveProcess> processes, String directoryName) {
-        String directoryPath = this.projectDir + DIRECTORY_SEPERATOR + directoryName;
+    public File showSaveDialogBox(){
+        // Show save dialog box
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Weave Project");
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("Weave Files", "*.wve")
+        );
+
+        // Give the dialog a starting point
+        String defaultPath = this.projectDir != null ? this.projectDir :System.getProperty("user.home") + DIRECTORY_SEPERATOR + "Documents";
+        fileChooser.setInitialDirectory(new File(defaultPath));
+        String defaultFileName = this.projectName != null ? this.projectName : "untitled";
+        fileChooser.setInitialFileName(defaultFileName + ".wve");
+
+        return fileChooser.showSaveDialog(new Stage());
+
+    }
+    
+    public boolean writeProcessesToDisk(ArrayList<WeaveProcess> processes) {
+        return writeProcessesToDisk(processes, null);
+    }
+        
+    public boolean writeProcessesToDisk(ArrayList<WeaveProcess> processes, File file) {
+
+        if ( file == null && (this.projectDir != null && this.projectName != null)) {
+            // Use existing project locations
+            file = new File(this.projectDir + DIRECTORY_SEPERATOR + this.projectName + ".wve");
+        }
+
+        if (file == null || !file.exists()) {
+            file = showSaveDialogBox();           
+
+            if (file == null){ // If clicked cancel, then don't save
+                return false;
+            }
+        } 
+
+        this.projectDir = file.getParent();
+        String directoryName = file.getName();
+        this.projectName = directoryName.substring(0, directoryName.lastIndexOf('.'));
+
+        String directoryPath = this.projectDir + DIRECTORY_SEPERATOR + this.projectName;     
 
         try {
             Files.createDirectories(Paths.get(directoryPath));
@@ -132,6 +175,7 @@ public class Scheduler {
                 e.printStackTrace();
             }
         }
+        return true;
     }
 
     public void runProcesses(ArrayList<WeaveProcess> processes) {

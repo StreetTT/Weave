@@ -4,6 +4,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import java.util.Optional;
 import java.util.ArrayList;
 
 public class Frontend extends Application {
@@ -18,8 +22,6 @@ public class Frontend extends Application {
         // init shared memory
         SharedMemory.SharedMemory();
 
-        scheduler.projectDir = "testproj";
-        scheduler.projectName = "TEST_PROJ";
         primaryStage.setTitle("Weave");
         Scene scene = new Scene(root, 1280, 720);
 
@@ -37,8 +39,35 @@ public class Frontend extends Application {
     }
 
     public void closeFunction(WindowEvent e) {
-        Scheduler.Scheduler().writeProcessesToDisk(processes, "sourceFiles");
+        prematureExit();
         SharedMemory.DeInit();
+    }
+
+    private void prematureExit(){
+        boolean successfulSave = false;
+        while (!successfulSave){
+            successfulSave = Scheduler.Scheduler().writeProcessesToDisk(processes);
+            if (!successfulSave) {
+                // Show a dialog box to confirm exit without saving
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Unsaved Changes");
+                alert.setHeaderText("Project is not be saved.");
+                alert.setContentText("Are you sure you want to exit without saving?");
+
+                ButtonType yesButton = new ButtonType("Yes");
+                ButtonType noButton = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+                alert.getButtonTypes().setAll(yesButton, noButton);
+
+                // Wait for user response
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.isPresent() && result.get() == yesButton) {
+                    break; // Exit the loop and proceed with closing
+                } else {
+                    e.consume(); // Prevent the window from closing
+                }
+            }
+        }
     }
 
     public static void main(String[] args) {
