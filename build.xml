@@ -140,8 +140,8 @@
             <arg value="/I${java.home}\include"/>
             <arg value="/I${java.home}\include\win32"/>
             <arg value="/LD"/>
-            <arg value="${src.dir}/shared_map.c"/>
+            <arg value="${src.dir}/weave_native.c"/>
         </exec>
-        <copy file="build/shared_map.dll" todir="${lib.dir}"/>
+        <copy file="build/weave_native.dll" todir="${lib.dir}"/>
     </target>
 </project>

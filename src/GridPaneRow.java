@@ -50,7 +50,7 @@ public class GridPaneRow extends GridPane {
         this.setOnMouseReleased(this::dragAndDropHandler);
     }
 
-    private PBlockRect findRectFromCol(int col) {
+    public PBlockRect findRectFromCol(int col) {
         //NOTE:(Ray) for some reason javafx requires you to loop over every single child just to find out if one
         // is at a specified index....
         for (Node node : this.getChildren()) {
@@ -100,8 +100,6 @@ public class GridPaneRow extends GridPane {
                 }
 
                 // change the selected rect or deselect the current selectedRect
-
-                //TODO(Ray): Fix weird slection stuff
                 PBlockRect oldSelectedRect = selectedRect;
                 if (oldSelectedRect != dragRect) {
                     selectedRect = dragRect;

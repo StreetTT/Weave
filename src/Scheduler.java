@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.ArrayList;
@@ -16,11 +17,13 @@ public class Scheduler {
     private static final String PROCESS_FILE_FOOTER = "__WEAVE.__WEAVE_PROCESS_END()";
     private static final String FUNCTION_HEADER = "process_func_block_";
     private static final String DIRECTORY_SEPARATOR = FileSystems.getDefault().getSeparator();
+    private static final String INDENT = "        ";
+    private static final String DIRECTORY_SEPERATOR = FileSystems.getDefault().getSeparator();
+
     public String projectName;
     public String projectDir;
   
     private Scheduler() {
-        //TODO(Ray) eventually serialise block pids and times from file
     }
 
 
@@ -32,10 +35,6 @@ public class Scheduler {
 
         return singleton_ref;
     };
-
-    public void runProcesses() {
-        //TODO(Ray) implement scheduling algorithm
-    }
 
     public StringBuilder getProcessFileContent(int process) {
         String filename = this.projectName + "_PROCESS_" + process + ".py";
@@ -64,7 +63,7 @@ public class Scheduler {
         return i + 1;
     }
 
-    public File showSaveDialogBox(){
+    public File showSaveDialogBox() {
         // Show save dialog box
         DirectoryChooser dirChooser = new DirectoryChooser();
         dirChooser.setTitle("Choose Project Directory");
@@ -99,59 +98,12 @@ public class Scheduler {
         return null;
     }
     
-    public byte[] createApplicationStateFile(){
-        try {
-            ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024); // 1MB initial size
-        
-            // Write magic number to identify file type
-            buffer.putInt(0x57454156); // "WEAV" in ASCII
-            buffer.putShort((short)1); // Version number
-            //TODO(Ray) implement this function to save the current state of the application
-
-            byte[] result = new byte[buffer.position()];
-            buffer.rewind();
-            buffer.get(result);
-            return result;
-            
-        } catch (Exception e) {
-            System.err.println("Failed to create binary data: " + e.getMessage());
-            return null;
-        }
-    }
-
-    public boolean writeProcessesToDisk(ArrayList<WeaveProcess> processes) {
-        return writeProcessesToDisk(processes, null);
-    }
-        
-    public boolean writeProcessesToDisk(ArrayList<WeaveProcess> processes, File fileDir) {
+    public boolean writeProcessesToDisk(ArrayList<WeaveProcess> processes, String folder) {
         // Force the user to name the project if it hasn't been done already
         while (Scheduler.Scheduler().projectName == null) {
             forceProjectName();
         }
-        
-        // If the project directory is not given, use the one already set if there is one
-        if (fileDir == null && Scheduler.Scheduler().projectDir != null) {
-            fileDir = new File(Scheduler.Scheduler().projectDir);
-        }
 
-        // If the project directory is still not set, show the save dialog box
-        if (fileDir == null || !fileDir.exists()) {
-            fileDir = showSaveDialogBox();           
-            if (fileDir == null){ // If clicked cancel, then don't save
-                return false;
-            }
-        } 
-        this.projectDir = fileDir.getAbsolutePath();
-
-        // Create the binary file
-        File wveFile = new File(this.projectDir + DIRECTORY_SEPARATOR + this.projectName + ".wve");
-        try {
-            Files.write(wveFile.toPath(), createApplicationStateFile());
-        } catch (IOException e) {
-            System.err.println("FAILED TO WRITE WVE FILE TO DISK!!");
-            e.printStackTrace();
-            return false;
-        }
 
         for (int processIdx = 0; processIdx < processes.size(); ++processIdx) {
             //output the headers
@@ -161,20 +113,24 @@ public class Scheduler {
             fullFileString.append("__WEAVE.__WEAVE_PROCESS_START(" + getPIDFromIDX(processIdx) + ")\n");
             String filename = this.getFilenameFromIdx(processIdx);
 
-            String fullFilepath = this.projectDir + DIRECTORY_SEPARATOR + filename;
+            String fullFilepath = this.projectDir + "/" + folder + "/" + filename;
             Path path = Paths.get(fullFilepath);
 
              //TODO:(Ray) Have exceptions throw up error windows in javafx
             // output one function per block
             for (int blockIdx = 0; blockIdx < process.largestIndex+1; ++blockIdx) {
                 Block block = process.blocks[blockIdx];
-                fullFileString.append("def " + getBlockFuctionStringFromIdx(blockIdx) + ":\n    ");
+
+                //NOTE(Ray): Must surround the entire code in a try finally block, without this, if it encounters an exception
+                // it will terminate and not Release the mutex, creating a deadlock
+
+                fullFileString.append("def " + getBlockFuctionStringFromIdx(blockIdx) + ":\n    try:\n        ");
                 if (block != null) {
                     StringBuilder blockContentStr = block.fileContents;
                     for (int charIdx = 0; charIdx < blockContentStr.length(); ++charIdx) {
                         char c = blockContentStr.charAt(charIdx);
                         if (c == '\t') {
-                            fullFileString.append("    ");  // convert tabs to spaces
+                            fullFileString.append(INDENT);  // convert tabs to spaces
                             continue;
                         }
 
@@ -185,25 +141,29 @@ public class Scheduler {
 
                         fullFileString.append(c);
                         if (c == '\n') {
-                            fullFileString.append("    "); // indent after newlines
+                            fullFileString.append(INDENT); // indent after newlines
                         }
                     }
                 }
 
                 // python doesn't allow empty functions appending 'pass' will keep python happy
-                fullFileString.append("\n    pass");
+                fullFileString.append("\n" + INDENT + "pass");
                 fullFileString.append("\n\n");
+
+                // release the mutex even if an exception occurs
+                fullFileString.append("    finally:\n");
+                if (blockIdx != process.largestIndex) {
+                    fullFileString.append(INDENT + "__WEAVE.__WEAVE_WAIT_TILL_SCHEDULED()\n");
+                } else {
+                    fullFileString.append(INDENT + "__WEAVE.__WEAVE_PROCESS_END()\n");
+                }
             }
 
             // output all function calls
             for (int blockIdx = 0; blockIdx < process.largestIndex; ++blockIdx) {
                 fullFileString.append(getBlockFuctionStringFromIdx(blockIdx) + "\n");
-                fullFileString.append("__WEAVE.__WEAVE_WAIT_TILL_SCHEDULED()\n");
             }
-
-            // the last one doesn't need to wait
             fullFileString.append(getBlockFuctionStringFromIdx(process.largestIndex) + "\n");
-            fullFileString.append(PROCESS_FILE_FOOTER);
             try {
                 Files.write(path, fullFileString.toString().getBytes(),
                         StandardOpenOption.WRITE,
@@ -213,8 +173,11 @@ public class Scheduler {
             } catch (IOException e) {
                 System.err.println("FAILED TO SAVE A PROCESS FILE TO DISK!!");
                 e.printStackTrace();
+                return false;
             }
         }
+
+        saveProjectFile(processes, this.projectName);
         return true;
     }
 
@@ -237,51 +200,11 @@ public class Scheduler {
         return selectedFile;
     }
 
-    private boolean readApplicationStateFile(byte[] data) {
-        try {
-            ByteBuffer buffer = ByteBuffer.wrap(data);
-            
-            // Verify magic number
-            int magic = buffer.getInt();
-            if (magic != 0x57454156) { // "WEAV"
-                throw new IllegalArgumentException("Invalid file format: incorrect magic number");
-            }
-            
-            // Check version
-            short version = buffer.getShort();
-            if (version != 1) {
-                throw new IllegalArgumentException("Unsupported version: " + version);
-            }
-            //TODO(Ray): Read the binary file and load the application state
-            
-            return true;
-            
-        } catch (Exception e) {
-            System.err.println("Failed to read application state: " + e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
-    }
-    
-    public boolean writeProcessesFromDisk(File file){
-        this.projectDir = file.getParent();
-        this.projectName = file.getName().substring(0, file.getName().length() - 4); // remove the .wve extension
-        
-        try {
-            readApplicationStateFile(Files.readAllBytes(file.toPath()));
-        } catch (Exception e) {
-            System.err.println("FAILED TO READ WVE FILE TO DISK!!");
-            e.printStackTrace();
-            return false;
-        }
-        //TODO(Ray): Read the processes from the disk and load them into the application state
-        
-        return true; 
-    }
 
+    // TODO(Ray): Can test but probably not using JUnit
     public void runProcesses(ArrayList<WeaveProcess> processes) {
         final String outputDir = "outFiles";
-        this.writeProcessesToDisk(processes);
+        this.writeProcessesToDisk(processes, outputDir);
         SharedMemory s = SharedMemory.SharedMemory();
         int[] pids = new int[processes.size()];
 
@@ -293,7 +216,7 @@ public class Scheduler {
 
         //NOTE(Ray): Reader Thread sits in the background just polling to see if processes have written anything to stdout
         // On windows, the stdout pipe will block all processes if it becomes full. The thread allows us to keep removing data
-        // from the pipe without introducing any extra waiting latency for the main thread or WEAVE processes.
+        // from the pipe without introducing any extra waiting latency for the main thread or python processes.
 
         SharedMemory.ReaderThreadStart();
         for (int i = 0; i < processes.size(); ++i) {
@@ -308,7 +231,7 @@ public class Scheduler {
 
         SharedMemory.ReaderThreadStop(); // Call this otherwise thread is just wasting system resources
 
-        // NOTE(Ray): Need to release all mutexes here, since on when we enter the function again we will try to aquire
+        // NOTE(Ray): Need to release all mutexes here, since on when we enter the function again we will try to acquire
         //  a mutex that we already own and we will deadlock
 
         for (int i = 0; i < processes.size(); ++i) {
@@ -320,5 +243,40 @@ public class Scheduler {
         ByteBuffer buffer = SharedMemory.GetProcessesOutput();
         System.out.println(StandardCharsets.UTF_8.decode(buffer));
 
+    }
+
+    //TODO(Ray): 100% can unit test this function
+    public void saveProjectFile(ArrayList<WeaveProcess> processes, String filename) {
+        Path path = Paths.get(this.projectDir + "/" + filename + ".wve");
+        ByteBuffer bytesToWrite = ByteBuffer.allocate(255 * processes.size());
+        bytesToWrite.order(ByteOrder.LITTLE_ENDIAN);
+
+        bytesToWrite.putInt(this.projectName.toCharArray().length * Character.BYTES);
+
+        for (char c: this.projectName.toCharArray()) {
+            bytesToWrite.putChar(c);
+        }
+
+        bytesToWrite.putInt(processes.size());
+
+        for (int i = 0; i < processes.size(); ++i) {
+            WeaveProcess process = processes.get(i);
+            bytesToWrite.putInt(process.largestIndex + 1);
+            for (int j = 0; j <= process.largestIndex; ++j) {
+                Block block = process.blocks[j];
+                if (block == null) {
+                    bytesToWrite.put((byte)0);
+                } else {
+                    bytesToWrite.put((byte)1);
+                }
+            }
+        }
+
+        try {
+            Files.write(path, bytesToWrite.array());
+        } catch (IOException e) {
+            System.err.println("COULDN'T WRITE PROJECT FILE");
+            e.printStackTrace();
+        }
     }
 }

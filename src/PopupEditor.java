@@ -25,13 +25,11 @@ public class PopupEditor {
             // make sure window doesn't block application events
             currStage.initModality(Modality.NONE);
 
-            //TODO(Ray) implement loading of process file blocks into text field
             this.textArea = new TextArea(this.block.fileContents.toString());
             Scene scene = new Scene(this.textArea, 300, 200);
             currStage.setScene(scene);
 
             // set showing to false when window closes
-            // TODO(Ray): Save on close
             currStage.setOnCloseRequest(this::saveOnClose);
             currStage.showAndWait();
             currStage.requestFocus();

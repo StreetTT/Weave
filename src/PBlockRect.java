@@ -8,7 +8,7 @@ public class PBlockRect extends Rectangle {
     // Links a block and its related variables in the scheduler to the Pane in the front end
     private static final int BLOCK_WIDTH = 50;
     private static final int BLOCK_HEIGHT = 50;
-    private final WeaveProcess process;
+    public final WeaveProcess process;
     public Block block;
     private int pos;
     private PopupEditor editor;
@@ -26,6 +26,11 @@ public class PBlockRect extends Rectangle {
         setOnMouseReleased(this::handleRelease);
     }
 
+    public void activateBlock() {
+        this.block = process.addBlock(this.pos);
+        setFill(Color.GREEN);
+    }
+
     private void handleClick(MouseEvent event) {
         System.out.println("MOUSE CLICKED");
         if (event.getClickCount() == 2) {
@@ -36,8 +41,7 @@ public class PBlockRect extends Rectangle {
 
                 this.editor.showPopup();
             } else {
-                this.block = process.addBlock(this.pos);
-                setFill(Color.GREEN);
+                activateBlock();
             }
         }
     }

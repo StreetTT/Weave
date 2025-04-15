@@ -1,6 +1,7 @@
 import mmap
 import time
 import ctypes
+import pickle
 
 WEAVE_IPCMEM = None
 PID = None
@@ -27,7 +28,7 @@ def __WEAVE_PROCESS_START(pid):
     PID = pid
     #get access to the shared buffer
     WEAVE_IPCMEM = mmap.mmap(-1, 8*_MAX_PROCESSES + _MAX_PROCESSES, "WEAVE_SHARED_IPC", access=mmap.ACCESS_WRITE)
-    LIB = ctypes.CDLL("./lib/shared_map.dll")
+    LIB = ctypes.CDLL("./lib/weave_native.dll")
 
     pid_signal_idx = pid
     signal_offset = MUTEX_SIZE * _MAX_PROCESSES
@@ -35,10 +36,13 @@ def __WEAVE_PROCESS_START(pid):
     PROGRAM_SIGNAL_IDX = signal_offset + PID
 
     LIB.python_mutex_lock.argtypes = [ctypes.c_void_p]
-    LIB.python_mutex_lock.argtypes = [ctypes.c_void_p]
+    LIB.python_mutex_release.argtypes = [ctypes.c_void_p]
 
     LIB.python_mutex_lock.restype = None
     LIB.python_mutex_release.restype = None
+
+    LIB.python_create_shared_mapping.argtypes = [ctypes.c_size_t, ctypes.c_size_t, ctypes.c_char_p]
+    LIB.python_create_shared_mapping.restype = None
 
     LIB.python_mutex_lock(__WEAVE_PID_TO_MUTEX(PID))
     WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] = 1
@@ -57,3 +61,18 @@ def __WEAVE_PROCESS_END():
     WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] = 2
     LIB.python_mutex_release(__WEAVE_PID_TO_MUTEX(PID))
     WEAVE_IPCMEM.close()
+
+def get_shared_array(cls, n_elements, name):
+    instance = cls()
+    serialised = pickle.dumps(instance)
+    size_in_bytes = len(serialised)
+
+    LIB.python_create_shared_mapping(size_in_bytes, n_elements, ctypes.c_char_p(name));
+    return mmap.mmap(-1, size_in_bytes * n_elements, name, access=mmap.ACCESS_WRITE)
+
+def get_shared_safe_array(cls, n_elements, name):
+    instance = cls()
+    serialised = pickle.dumps(instance)
+    size_in_bytes = len(serialised);
+
+    LIB.python_create_safe_shared_mapping(size_in_bytes, n_elements, ctypes.c_char_p(name));

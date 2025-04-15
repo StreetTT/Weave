@@ -1,18 +1,15 @@
 import javafx.fxml.FXML;
 import javafx.scene.layout.VBox;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.Region;
 import java.io.File;
-import java.nio.file.FileSystems;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Optional;
 
 //NOTE:(Ray) Maybe take the new classes for PBlockRect and PopupEditor and move them into jxml styles
 // and port the existing classes to controllers????
@@ -24,12 +21,12 @@ public class FrontendController {
     private Region spacer;
     private ArrayList<WeaveProcess> selectedProcesses = new ArrayList<>();
 
-    public void initialize(){
-        //adds the first row by defult
+    public void initialize() {
+        addRow();
         addRow();
     }
 
-    public void addRow() {
+    public ProcessRow addRow() {
         // Create a new row
         WeaveProcess process = new WeaveProcess();
         Frontend.processes.add(process);
@@ -54,6 +51,8 @@ public class FrontendController {
 
         processContainer.getChildren().add(newRow);
         System.out.println("ADDED PROCESS " + processContainer.getChildren().size());
+
+        return newRow;
     }
 
     public void runProcesses() {
@@ -64,17 +63,77 @@ public class FrontendController {
         Scheduler.Scheduler().runProcesses(selectedProcesses);
     }
 
-    public boolean saveProjectAs(){
-        File file = Scheduler.Scheduler().showSaveDialogBox();
-        return Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, file);
+    public void saveProjectAs(){
+        File folder = Scheduler.Scheduler().showSaveDialogBox();
+        if (folder != null) {
+            Scheduler.Scheduler().projectDir = folder.toString();
+            Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
+        }
     }
 
     public boolean saveProject(){
-        return Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes);
+        return Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
     }
 
-    public boolean openProject(){
+    public void openProject() {
         File file = Scheduler.Scheduler().showOpenDialogBox();
-        return Scheduler.Scheduler().writeProcessesFromDisk(file);
+
+        if (file == null) {
+            return;
+        }
+
+        processContainer.getChildren().clear();
+        Frontend.processes.clear();
+
+
+        //adds the first row by defult
+        ByteBuffer contents = ByteBuffer.allocate(0);
+        try {
+            contents = ByteBuffer.wrap(Files.readAllBytes(file.toPath()));
+        } catch (IOException e) {
+            System.out.println("FAILED TO READ FROM PROJECT DATA FILE");
+            e.printStackTrace();
+        }
+
+        contents.order(ByteOrder.LITTLE_ENDIAN);
+
+        StringBuilder projectName = new StringBuilder();
+        int project_name_length = contents.getInt() / Character.BYTES;
+
+        for (int i = 0; i < project_name_length; ++i) {
+            projectName.append(contents.getChar());
+        }
+
+        int processes = contents.getInt();
+
+        // Deserialise proceess data
+        for (int i = 0; i < processes; ++i) {
+            ProcessRow row = addRow();
+            int blocks = contents.getInt();
+            // read in entire file and parse
+            Path processFile = Paths.get("./" + Scheduler.Scheduler().projectDir + "/sourceFiles/" + projectName + "_PROCESS_" + (i+1) + ".py");
+            byte[] processFileContents = new byte[0];
+            try {
+                 processFileContents = Files.readAllBytes(processFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            String processFileString = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(processFileContents)).toString();
+
+            for (int j = 0; j < blocks; ++j) {
+                byte block = contents.get();
+                if (block == 1) {
+                    PBlockRect uiBlock = row.gridPaneRow.findRectFromCol(j);
+                    int functionIdx = processFileString.indexOf("process_func_block_" + j + "():\n    try:");
+                    int blockStartIdx = processFileString.indexOf("        ", functionIdx);
+                    int blockEndIdx = processFileString.indexOf("\n        pass", blockStartIdx);
+                    String blockString = processFileString.substring(blockStartIdx, blockEndIdx);
+                    blockString = blockString.indent(-8); // remove indents
+                    uiBlock.activateBlock();
+                    uiBlock.block.fileContents = new StringBuilder(blockString);
+                }
+            }
+        }
     }
 }

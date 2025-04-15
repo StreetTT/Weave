@@ -17,11 +17,6 @@ public class Frontend extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("frontend.fxml"));
-        Scheduler scheduler = Scheduler.Scheduler(); // Please always do this at application start
-
-        // init shared memory
-        SharedMemory.SharedMemory();
-
         primaryStage.setTitle("Weave");
         Scene scene = new Scene(root, 1280, 720);
 
@@ -43,9 +38,9 @@ public class Frontend extends Application {
         SharedMemory.DeInit();
     }
 
-    private void prematureExit(WindowEvent e){
+    private void prematureExit(WindowEvent e) {
         boolean successfulSave = false;
-        while (!successfulSave){
+        while (!successfulSave) {
             if (!successfulSave) {
                 // Show a dialog box to confirm exit without saving
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -61,7 +56,7 @@ public class Frontend extends Application {
 
                 Optional<ButtonType> result = alert.showAndWait();
                 if (result.get() == saveButton) {
-                    successfulSave = Scheduler.Scheduler().writeProcessesToDisk(processes);
+                    successfulSave = Scheduler.Scheduler().writeProcessesToDisk(processes, "sourceFiles");
                     if (!successfulSave) {
                         e.consume(); // Don't close if save failed
                     }
@@ -76,6 +71,13 @@ public class Frontend extends Application {
     }
 
     public static void main(String[] args) {
+        Scheduler scheduler = Scheduler.Scheduler(); // Please always do this at application start
+
+        // init shared memory
+        SharedMemory.SharedMemory();
+
+        scheduler.projectDir = "testproj";
+        scheduler.projectName = "TEST_PROJ";
         launch(args);
     }
 

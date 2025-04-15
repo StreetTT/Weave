@@ -56,8 +56,16 @@ static DWORD CALLBACK reader_thread(LPVOID args) {
 
                             if (ok && out_bytes > 0)  {
                                 reader->scrollback_write_offset += out_bytes;
+                                uint64_t abs_read_offset = max(0, reader->scrollback_write_offset - reader->scrollback_buffer_size);
+                                int read_size = reader->scrollback_write_offset - abs_read_offset;
+                                int relative_read_offset = abs_read_offset & (reader->scrollback_buffer_size - 1); // mask off the high bits to get an offset
+                                fprintf(stderr, "%.*s\n", read_size, reader->scrollback_buffer1 + relative_read_offset);
+                                fflush(stderr);
                             }
+
+
                         }
+
 
                 } else {
                         BOOL active = FALSE;
@@ -91,7 +99,7 @@ JNIEXPORT void JNICALL Java_SharedMemory_ReaderThreadStop(JNIEnv *env, jclass cl
 
 HANDLE pid_to_mutex(void *mutex_arr, int pid) {
         assert(pid != 0); // if this fires something has gone very very wrong 
-        return (HANDLE *)(MUTEX_ARRAY)[pid - 1];
+        return MUTEX_ARRAY[pid - 1];
 }
 
 JNIEXPORT void JNICALL Java_SharedMemory_Init(JNIEnv *env, jclass cls) {

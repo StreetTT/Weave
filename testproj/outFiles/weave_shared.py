@@ -26,11 +26,13 @@ def __WEAVE_PROCESS_START(pid):
 
     PID = pid
     #get access to the shared buffer
+    print("attempting to map mem", flush=True)
     WEAVE_IPCMEM = mmap.mmap(-1, 8*_MAX_PROCESSES + _MAX_PROCESSES, "WEAVE_SHARED_IPC", access=mmap.ACCESS_WRITE)
     LIB = ctypes.CDLL("./lib/shared_map.dll")
 
     pid_signal_idx = pid
     signal_offset = MUTEX_SIZE * _MAX_PROCESSES
+    print("Have signal offset", flush=True)
 
     PROGRAM_SIGNAL_IDX = signal_offset + PID
 
@@ -40,18 +42,20 @@ def __WEAVE_PROCESS_START(pid):
     LIB.python_mutex_lock.restype = None
     LIB.python_mutex_release.restype = None
 
-    print("Attempting to lock mutex for {PID}")
+    print("Attempting to lock mutex for {PID}", flush=True)
     LIB.python_mutex_lock(__WEAVE_PID_TO_MUTEX(PID))
     WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] = 1
-    print("LOCKED MUTEX for {PID}")
+    print("LOCKED MUTEX for {PID}", flush=True)
 
 # Must occur after every single function call/block
 def __WEAVE_WAIT_TILL_SCHEDULED():
     LIB.python_mutex_release(__WEAVE_PID_TO_MUTEX(PID))
+    print(f"{PID} We wait till scheduled", flush=True)
     while (WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] == 1):
         continue
 
     LIB.python_mutex_lock(__WEAVE_PID_TO_MUTEX(PID))
+    print(f"{PID} WE are reeady", flush=True)
     WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] = 1
 
 

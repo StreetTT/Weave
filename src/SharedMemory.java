@@ -103,7 +103,7 @@ public class SharedMemory {
     }
 
     static {
-        System.loadLibrary("./lib/shared_map");
+        System.loadLibrary("./lib/weave_native");
     }
 
     //TODO(Ray): Convert this into a more general Run function inside the scheduler

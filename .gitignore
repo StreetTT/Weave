@@ -43,3 +43,8 @@ __pycache__/
 hs_err_pid*
 replay_pid*
 /test-reports
+/testproj
+*.wve
+*.wve
+*.wve
+/test-reports

@@ -16,6 +16,7 @@ public class ProcessRow extends HBox {
     public boolean selected = true;
     VBox roundedContainer;
     WeaveProcess process;
+    GridPaneRow gridPaneRow;
     //TODO: make the row dynamically change size when resized
 
     public ProcessRow(WeaveProcess p) {
@@ -95,9 +96,9 @@ public class ProcessRow extends HBox {
         });
 
         //row of processes inside the rectangle
-        GridPaneRow newRow = new GridPaneRow(process);
+        this.gridPaneRow = new GridPaneRow(process);
 
-        HBox blockWrapper = new HBox(newRow);
+        HBox blockWrapper = new HBox(this.gridPaneRow);
         blockWrapper.setAlignment(Pos.CENTER_LEFT);
 
         HBox contentBox = new HBox();
