@@ -249,7 +249,11 @@ public class Scheduler {
     public void saveProjectFile(ArrayList<WeaveProcess> processes, String filename) {
         Path path = Paths.get(this.projectDir + "/" + filename + ".wve");
         ByteBuffer bytesToWrite = ByteBuffer.allocate(255 * processes.size());
-        bytesToWrite.order(ByteOrder.LITTLE_ENDIAN);
+        bytesToWrite.order(ByteOrder.LITTLE_ENDIAN); // little endian on every architecture that matters
+        int fileIdentifier = 'W' | 'E' << 8 | 'V' << 16 | 'E' << 24;
+
+        bytesToWrite.putInt(fileIdentifier);
+        bytesToWrite.putInt(1); // version
 
         bytesToWrite.putInt(this.projectName.toCharArray().length * Character.BYTES);
 

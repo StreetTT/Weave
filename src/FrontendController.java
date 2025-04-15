@@ -82,10 +82,6 @@ public class FrontendController {
             return;
         }
 
-        processContainer.getChildren().clear();
-        Frontend.processes.clear();
-
-
         //adds the first row by defult
         ByteBuffer contents = ByteBuffer.allocate(0);
         try {
@@ -96,44 +92,53 @@ public class FrontendController {
         }
 
         contents.order(ByteOrder.LITTLE_ENDIAN);
+        int fileIdentifier = contents.getInt();
+        if (fileIdentifier == ('W' | 'E' << 8 | 'V' << 16 | 'E' << 24)) {
+            processContainer.getChildren().clear();
+            Frontend.processes.clear();
+            int version = contents.getInt(); // ignore the version we literally only have one
+            StringBuilder projectName = new StringBuilder();
+            int project_name_length = contents.getInt() / Character.BYTES;
 
-        StringBuilder projectName = new StringBuilder();
-        int project_name_length = contents.getInt() / Character.BYTES;
-
-        for (int i = 0; i < project_name_length; ++i) {
-            projectName.append(contents.getChar());
-        }
-
-        int processes = contents.getInt();
-
-        // Deserialise proceess data
-        for (int i = 0; i < processes; ++i) {
-            ProcessRow row = addRow();
-            int blocks = contents.getInt();
-            // read in entire file and parse
-            Path processFile = Paths.get("./" + Scheduler.Scheduler().projectDir + "/sourceFiles/" + projectName + "_PROCESS_" + (i+1) + ".py");
-            byte[] processFileContents = new byte[0];
-            try {
-                 processFileContents = Files.readAllBytes(processFile);
-            } catch (IOException e) {
-                e.printStackTrace();
+            for (int i = 0; i < project_name_length; ++i) {
+                projectName.append(contents.getChar());
             }
 
-            String processFileString = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(processFileContents)).toString();
 
-            for (int j = 0; j < blocks; ++j) {
-                byte block = contents.get();
-                if (block == 1) {
-                    PBlockRect uiBlock = row.gridPaneRow.findRectFromCol(j);
-                    int functionIdx = processFileString.indexOf("process_func_block_" + j + "():\n    try:");
-                    int blockStartIdx = processFileString.indexOf("        ", functionIdx);
-                    int blockEndIdx = processFileString.indexOf("\n        pass", blockStartIdx);
-                    String blockString = processFileString.substring(blockStartIdx, blockEndIdx);
-                    blockString = blockString.indent(-8); // remove indents
-                    uiBlock.activateBlock();
-                    uiBlock.block.fileContents = new StringBuilder(blockString);
+            int processes = contents.getInt();
+
+            // Deserialise proceess data
+            for (int i = 0; i < processes; ++i) {
+                ProcessRow row = addRow();
+                int blocks = contents.getInt();
+                // read in entire file and parse
+                Path processFile = Paths.get("./" + Scheduler.Scheduler().projectDir + "/sourceFiles/" + projectName + "_PROCESS_" + (i + 1) + ".py");
+                byte[] processFileContents = new byte[0];
+                try {
+                    processFileContents = Files.readAllBytes(processFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                String processFileString = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(processFileContents)).toString();
+
+
+                for (int j = 0; j < blocks; ++j) {
+                    byte block = contents.get();
+                    if (block == 1) {
+                        PBlockRect uiBlock = row.gridPaneRow.findRectFromCol(j);
+                        int functionIdx = processFileString.indexOf("process_func_block_" + j + "():\n    try:");
+                        int blockStartIdx = processFileString.indexOf("        ", functionIdx);
+                        int blockEndIdx = processFileString.indexOf("\n        pass", blockStartIdx);
+                        String blockString = processFileString.substring(blockStartIdx, blockEndIdx);
+                        blockString = blockString.indent(-8); // remove indents
+                        uiBlock.activateBlock();
+                        uiBlock.block.fileContents = new StringBuilder(blockString);
+                    }
                 }
             }
+        } else {
+            System.err.println("Invalid Project File");
         }
     }
 }
