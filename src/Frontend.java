@@ -39,32 +39,37 @@ public class Frontend extends Application {
     }
 
     public void closeFunction(WindowEvent e) {
-        prematureExit();
+        prematureExit(e);
         SharedMemory.DeInit();
     }
 
-    private void prematureExit(){
+    private void prematureExit(WindowEvent e){
         boolean successfulSave = false;
         while (!successfulSave){
-            successfulSave = Scheduler.Scheduler().writeProcessesToDisk(processes);
             if (!successfulSave) {
                 // Show a dialog box to confirm exit without saving
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.setTitle("Unsaved Changes");
-                alert.setHeaderText("Project is not be saved.");
-                alert.setContentText("Are you sure you want to exit without saving?");
+                alert.setHeaderText("Do you want to save before exiting?");
+                alert.setContentText("Choose your option.");
 
-                ButtonType yesButton = new ButtonType("Yes");
-                ButtonType noButton = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
+                ButtonType saveButton = new ButtonType("Save");
+                ButtonType dontSaveButton = new ButtonType("Don't Save");
+                ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-                alert.getButtonTypes().setAll(yesButton, noButton);
+                alert.getButtonTypes().setAll(saveButton, dontSaveButton, cancelButton);
 
-                // Wait for user response
                 Optional<ButtonType> result = alert.showAndWait();
-                if (result.isPresent() && result.get() == yesButton) {
-                    break; // Exit the loop and proceed with closing
+                if (result.get() == saveButton) {
+                    successfulSave = Scheduler.Scheduler().writeProcessesToDisk(processes);
+                    if (!successfulSave) {
+                        e.consume(); // Don't close if save failed
+                    }
+                } else if (result.get() == dontSaveButton) {
+                    successfulSave = true;
                 } else {
-                    e.consume(); // Prevent the window from closing
+                    e.consume();
+                    break;
                 }
             }
         }

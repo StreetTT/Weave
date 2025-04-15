@@ -1,8 +1,18 @@
 import javafx.fxml.FXML;
 import javafx.scene.layout.VBox;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.Region;
-
+import java.io.File;
+import java.nio.file.FileSystems;
 import java.util.ArrayList;
+import java.util.Optional;
 
 //NOTE:(Ray) Maybe take the new classes for PBlockRect and PopupEditor and move them into jxml styles
 // and port the existing classes to controllers????
@@ -12,7 +22,6 @@ public class FrontendController {
     private VBox processContainer;
     @FXML
     private Region spacer;
-    private PBlockRect selectedRect;
     private ArrayList<WeaveProcess> selectedProcesses = new ArrayList<>();
 
     public void initialize(){
@@ -55,12 +64,17 @@ public class FrontendController {
         Scheduler.Scheduler().runProcesses(selectedProcesses);
     }
 
-    public boolean  saveProjectAs(){
+    public boolean saveProjectAs(){
         File file = Scheduler.Scheduler().showSaveDialogBox();
         return Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, file);
     }
 
-    public boolean  saveProject(){
+    public boolean saveProject(){
         return Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes);
+    }
+
+    public boolean openProject(){
+        File file = Scheduler.Scheduler().showOpenDialogBox();
+        return Scheduler.Scheduler().writeProcessesFromDisk(file);
     }
 }

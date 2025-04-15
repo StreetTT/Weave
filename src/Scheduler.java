@@ -1,10 +1,12 @@
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.ArrayList;
+import java.util.Optional;
+import javafx.scene.control.TextInputDialog;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -13,7 +15,7 @@ public class Scheduler {
     private static final String PROCESS_FILE_HEADER = "import weave_shared as __WEAVE\n";
     private static final String PROCESS_FILE_FOOTER = "__WEAVE.__WEAVE_PROCESS_END()";
     private static final String FUNCTION_HEADER = "process_func_block_";
-    private static final String DIRECTORY_SEPERATOR = FileSystems.getDefault().getSeparator();
+    private static final String DIRECTORY_SEPARATOR = FileSystems.getDefault().getSeparator();
     public String projectName;
     public String projectDir;
   
@@ -64,53 +66,91 @@ public class Scheduler {
 
     public File showSaveDialogBox(){
         // Show save dialog box
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Save Weave Project");
-        fileChooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("Weave Files", "*.wve")
-        );
+        DirectoryChooser dirChooser = new DirectoryChooser();
+        dirChooser.setTitle("Choose Project Directory");
 
         // Give the dialog a starting point
-        String defaultPath = this.projectDir != null ? this.projectDir :System.getProperty("user.home") + DIRECTORY_SEPERATOR + "Documents";
-        fileChooser.setInitialDirectory(new File(defaultPath));
-        String defaultFileName = this.projectName != null ? this.projectName : "untitled";
-        fileChooser.setInitialFileName(defaultFileName + ".wve");
+        String defaultPath = 
+            Scheduler.Scheduler().projectDir != null 
+            ? Scheduler.Scheduler().projectDir 
+            : System.getProperty("user.home") + FileSystems.getDefault().getSeparator() + "Documents";
+        dirChooser.setInitialDirectory(new File(defaultPath));
 
-        return fileChooser.showSaveDialog(new Stage());
+        // Show dialog and get selected directory
+        return dirChooser.showDialog(new Stage());
+    }
 
+    private String forceProjectName() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Project Name");
+        dialog.setHeaderText("You must name your project first.");
+        dialog.setContentText("Project name:");
+        dialog.getEditor().setText("untitledProject");
+        
+        // Show dialog and wait for response
+        Optional<String> result = dialog.showAndWait();
+        
+        // Update project name if user entered one
+        if (result.isPresent() && !result.get().trim().isEmpty()) {
+            Scheduler.Scheduler().projectName = result.get().trim();
+            return Scheduler.Scheduler().projectName;
+        }
+        
+        return null;
     }
     
+    public byte[] createApplicationStateFile(){
+        try {
+            ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024); // 1MB initial size
+        
+            // Write magic number to identify file type
+            buffer.putInt(0x57454156); // "WEAV" in ASCII
+            buffer.putShort((short)1); // Version number
+            //TODO(Ray) implement this function to save the current state of the application
+
+            byte[] result = new byte[buffer.position()];
+            buffer.rewind();
+            buffer.get(result);
+            return result;
+            
+        } catch (Exception e) {
+            System.err.println("Failed to create binary data: " + e.getMessage());
+            return null;
+        }
+    }
+
     public boolean writeProcessesToDisk(ArrayList<WeaveProcess> processes) {
         return writeProcessesToDisk(processes, null);
     }
         
-    public boolean writeProcessesToDisk(ArrayList<WeaveProcess> processes, File file) {
-
-        if ( file == null && (this.projectDir != null && this.projectName != null)) {
-            // Use existing project locations
-            file = new File(this.projectDir + DIRECTORY_SEPERATOR + this.projectName + ".wve");
+    public boolean writeProcessesToDisk(ArrayList<WeaveProcess> processes, File fileDir) {
+        // Force the user to name the project if it hasn't been done already
+        while (Scheduler.Scheduler().projectName == null) {
+            forceProjectName();
+        }
+        
+        // If the project directory is not given, use the one already set if there is one
+        if (fileDir == null && Scheduler.Scheduler().projectDir != null) {
+            fileDir = new File(Scheduler.Scheduler().projectDir);
         }
 
-        if (file == null || !file.exists()) {
-            file = showSaveDialogBox();           
-
-            if (file == null){ // If clicked cancel, then don't save
+        // If the project directory is still not set, show the save dialog box
+        if (fileDir == null || !fileDir.exists()) {
+            fileDir = showSaveDialogBox();           
+            if (fileDir == null){ // If clicked cancel, then don't save
                 return false;
             }
         } 
+        this.projectDir = fileDir.getAbsolutePath();
 
-        this.projectDir = file.getParent();
-        String directoryName = file.getName();
-        this.projectName = directoryName.substring(0, directoryName.lastIndexOf('.'));
-
-        String directoryPath = this.projectDir + DIRECTORY_SEPERATOR + this.projectName;     
-
+        // Create the binary file
+        File wveFile = new File(this.projectDir + DIRECTORY_SEPARATOR + this.projectName + ".wve");
         try {
-            Files.createDirectories(Paths.get(directoryPath));
+            Files.write(wveFile.toPath(), createApplicationStateFile());
         } catch (IOException e) {
-            //NOTE:(Ray) Files.createDirectories will NOT throw if the directory already exists
-            System.err.println("FAILED TO CREATE DIRECTORIES WHEN SAVING PROCESS TO DISK");
+            System.err.println("FAILED TO WRITE WVE FILE TO DISK!!");
             e.printStackTrace();
+            return false;
         }
 
         for (int processIdx = 0; processIdx < processes.size(); ++processIdx) {
@@ -121,7 +161,7 @@ public class Scheduler {
             fullFileString.append("__WEAVE.__WEAVE_PROCESS_START(" + getPIDFromIDX(processIdx) + ")\n");
             String filename = this.getFilenameFromIdx(processIdx);
 
-            String fullFilepath = directoryPath + DIRECTORY_SEPERATOR + filename;
+            String fullFilepath = this.projectDir + DIRECTORY_SEPARATOR + filename;
             Path path = Paths.get(fullFilepath);
 
              //TODO:(Ray) Have exceptions throw up error windows in javafx
@@ -178,9 +218,70 @@ public class Scheduler {
         return true;
     }
 
+    public File showOpenDialogBox() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Weave Project");
+        
+        // Only allow .wve files
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("Weave Files", "*.wve")
+        );
+        
+        // Set initial directory
+        String defaultPath = System.getProperty("user.home") + DIRECTORY_SEPARATOR + "Documents";
+        fileChooser.setInitialDirectory(new File(defaultPath));
+        
+        // Show open dialog
+        File selectedFile = fileChooser.showOpenDialog(new Stage());
+        
+        return selectedFile;
+    }
+
+    private boolean readApplicationStateFile(byte[] data) {
+        try {
+            ByteBuffer buffer = ByteBuffer.wrap(data);
+            
+            // Verify magic number
+            int magic = buffer.getInt();
+            if (magic != 0x57454156) { // "WEAV"
+                throw new IllegalArgumentException("Invalid file format: incorrect magic number");
+            }
+            
+            // Check version
+            short version = buffer.getShort();
+            if (version != 1) {
+                throw new IllegalArgumentException("Unsupported version: " + version);
+            }
+            //TODO(Ray): Read the binary file and load the application state
+            
+            return true;
+            
+        } catch (Exception e) {
+            System.err.println("Failed to read application state: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public boolean writeProcessesFromDisk(File file){
+        this.projectDir = file.getParent();
+        this.projectName = file.getName().substring(0, file.getName().length() - 4); // remove the .wve extension
+        
+        try {
+            readApplicationStateFile(Files.readAllBytes(file.toPath()));
+        } catch (Exception e) {
+            System.err.println("FAILED TO READ WVE FILE TO DISK!!");
+            e.printStackTrace();
+            return false;
+        }
+        //TODO(Ray): Read the processes from the disk and load them into the application state
+        
+        return true; 
+    }
+
     public void runProcesses(ArrayList<WeaveProcess> processes) {
         final String outputDir = "outFiles";
-        this.writeProcessesToDisk(processes, outputDir);
+        this.writeProcessesToDisk(processes);
         SharedMemory s = SharedMemory.SharedMemory();
         int[] pids = new int[processes.size()];
 
