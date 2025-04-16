@@ -1,11 +1,16 @@
 import javafx.fxml.FXML;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.Region;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -64,7 +69,7 @@ public class FrontendController {
     }
 
     public void saveProjectAs(){
-        File folder = Scheduler.Scheduler().showSaveDialogBox();
+        File folder = this.showSaveDialogBox();
         if (folder != null) {
             Scheduler.Scheduler().projectDir = folder.toString();
             Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
@@ -76,11 +81,12 @@ public class FrontendController {
     }
 
     public void openProject() {
-        File file = Scheduler.Scheduler().showOpenDialogBox();
-
+        File file = this.showOpenDialogBox();
         if (file == null) {
             return;
         }
+
+        Scheduler.Scheduler().projectDir = file.getParent().toString();
 
         //adds the first row by defult
         ByteBuffer contents = ByteBuffer.allocate(0);
@@ -104,6 +110,7 @@ public class FrontendController {
                 projectName.append(contents.getChar());
             }
 
+            Scheduler.Scheduler().projectName = projectName.toString();
 
             int processes = contents.getInt();
 
@@ -112,7 +119,7 @@ public class FrontendController {
                 ProcessRow row = addRow();
                 int blocks = contents.getInt();
                 // read in entire file and parse
-                Path processFile = Paths.get("./" + Scheduler.Scheduler().projectDir + "/sourceFiles/" + projectName + "_PROCESS_" + (i + 1) + ".py");
+                Path processFile = Paths.get(Scheduler.Scheduler().projectDir + "/sourceFiles/" + projectName + "_PROCESS_" + (i + 1) + ".py");
                 byte[] processFileContents = new byte[0];
                 try {
                     processFileContents = Files.readAllBytes(processFile);
@@ -140,5 +147,37 @@ public class FrontendController {
         } else {
             System.err.println("Invalid Project File");
         }
+    }
+
+    private File showOpenDialogBox() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Weave Project");
+
+        // Only allow .wve files
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Weave Files", "*.wve")
+        );
+
+        // Set initial directory
+        String defaultPath = Scheduler.Scheduler().projectDir;
+        fileChooser.setInitialDirectory(new File(defaultPath));
+
+        // Show open dialog
+        File selectedFile = fileChooser.showOpenDialog(new Stage());
+
+        return selectedFile;
+    }
+
+    private File showSaveDialogBox() {
+        // Show save dialog box
+        DirectoryChooser dirChooser = new DirectoryChooser();
+        dirChooser.setTitle("Choose Project Directory");
+
+        // Give the dialog a starting point
+        String defaultPath = Scheduler.Scheduler().projectDir;
+        dirChooser.setInitialDirectory(new File(defaultPath));
+
+        // Show dialog and get selected directory
+        return dirChooser.showDialog(new Stage());
     }
 }

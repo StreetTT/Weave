@@ -2,6 +2,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 
+//TODO(Ray): Obfuscate the sharedmemroy name
+
 public class SharedMemory {
     static private native void Init();
     static private native ByteBuffer GetSignalArray();

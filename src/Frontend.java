@@ -7,16 +7,28 @@ import javafx.stage.WindowEvent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+
+import java.io.IOException;
 import java.util.Optional;
 import java.util.ArrayList;
+
+//TODO: Replace almost every single system.err.print and exception catch, with a GUI message box to show to the user
 
 public class Frontend extends Application {
 
     static public ArrayList<WeaveProcess> processes = new ArrayList<>();
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("frontend.fxml"));
+    public void start(Stage primaryStage) {
+
+        Parent root;
+        try {
+            root = FXMLLoader.load(getClass().getResource("frontend.fxml"));
+        } catch (IOException e) {
+            System.err.println("Counln't find the fxml file");
+            return;
+        }
+
         primaryStage.setTitle("Weave");
         Scene scene = new Scene(root, 1280, 720);
 
