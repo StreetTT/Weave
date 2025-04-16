@@ -1,3 +1,4 @@
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.*;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -54,6 +55,7 @@ public class ProcessRow extends HBox {
 
         //TODO: Functionaility for this buttton lol
         this.runButton = new JFXButton("▶");
+        this.runButton.setTooltip(new Tooltip("Run this process"));
         runButton.setRotate(90);
         runButton.setStyle(
                 "-fx-background-color: #81c784;" +
@@ -78,6 +80,7 @@ public class ProcessRow extends HBox {
 
         //showing name of proces(TODO: link name to procces)
         TextField processName = new TextField("");
+        processName.setTooltip(new Tooltip("Enter process name"));
         processName.setPromptText("Process Name");
         processName.setStyle(
                 "-fx-background-color: #eeeeee;" +
