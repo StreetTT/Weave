@@ -63,22 +63,6 @@ public class Scheduler {
         return i + 1;
     }
 
-    public File showSaveDialogBox() {
-        // Show save dialog box
-        DirectoryChooser dirChooser = new DirectoryChooser();
-        dirChooser.setTitle("Choose Project Directory");
-
-        // Give the dialog a starting point
-        String defaultPath = 
-            Scheduler.Scheduler().projectDir != null 
-            ? Scheduler.Scheduler().projectDir 
-            : System.getProperty("user.home") + FileSystems.getDefault().getSeparator() + "Documents";
-        dirChooser.setInitialDirectory(new File(defaultPath));
-
-        // Show dialog and get selected directory
-        return dirChooser.showDialog(new Stage());
-    }
-
     private String forceProjectName() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Project Name");
@@ -105,6 +89,16 @@ public class Scheduler {
         }
 
 
+        String dirpath = this.projectDir + "/" + folder;
+
+        try {
+            Files.createDirectories(Paths.get(dirpath)); // create one if it doens't already exist
+        } catch (IOException e) {
+            System.err.println("Creating process directory failed");
+            e.printStackTrace();
+            return false;
+        }
+
         for (int processIdx = 0; processIdx < processes.size(); ++processIdx) {
             //output the headers
             WeaveProcess process = processes.get(processIdx);
@@ -113,10 +107,9 @@ public class Scheduler {
             fullFileString.append("__WEAVE.__WEAVE_PROCESS_START(" + getPIDFromIDX(processIdx) + ")\n");
             String filename = this.getFilenameFromIdx(processIdx);
 
-            String fullFilepath = this.projectDir + "/" + folder + "/" + filename;
+            String fullFilepath = dirpath + "/" + filename;
             Path path = Paths.get(fullFilepath);
 
-             //TODO:(Ray) Have exceptions throw up error windows in javafx
             // output one function per block
             for (int blockIdx = 0; blockIdx < process.largestIndex+1; ++blockIdx) {
                 Block block = process.blocks[blockIdx];
@@ -181,25 +174,6 @@ public class Scheduler {
         return true;
     }
 
-    public File showOpenDialogBox() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open Weave Project");
-        
-        // Only allow .wve files
-        fileChooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("Weave Files", "*.wve")
-        );
-        
-        // Set initial directory
-        String defaultPath = System.getProperty("user.home") + DIRECTORY_SEPARATOR + "Documents";
-        fileChooser.setInitialDirectory(new File(defaultPath));
-        
-        // Show open dialog
-        File selectedFile = fileChooser.showOpenDialog(new Stage());
-        
-        return selectedFile;
-    }
-
 
     // TODO(Ray): Can test but probably not using JUnit
     public void runProcesses(ArrayList<WeaveProcess> processes) {
@@ -246,6 +220,7 @@ public class Scheduler {
     }
 
     //TODO(Ray): 100% can unit test this function
+    //TODO(Ray): Checksums???
     public void saveProjectFile(ArrayList<WeaveProcess> processes, String filename) {
         Path path = Paths.get(this.projectDir + "/" + filename + ".wve");
         ByteBuffer bytesToWrite = ByteBuffer.allocate(255 * processes.size());
