@@ -1,4 +1,5 @@
 import javafx.fxml.FXML;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.Region;
 import javafx.stage.DirectoryChooser;
@@ -42,7 +43,7 @@ public class FrontendController {
                     processContainer.getChildren().remove(newRow);
                     Frontend.processes.remove(process);
         });
-
+        newRow.deleteButton.setTooltip(new Tooltip("Delete this process"));
         newRow.selectButton.setOnAction(e -> {
             newRow.handleSelect();
             if (newRow.selected) {
@@ -53,7 +54,7 @@ public class FrontendController {
                 System.out.println("DESELECTED PROCESS");
             }
         });
-
+        newRow.selectButton.setTooltip(new Tooltip("Select this process"));
         processContainer.getChildren().add(newRow);
         System.out.println("ADDED PROCESS " + processContainer.getChildren().size());
 
