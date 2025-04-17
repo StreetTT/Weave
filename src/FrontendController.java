@@ -167,7 +167,7 @@ public class FrontendController {
                             }
                         }
 
-                        if (!(contents.hasRemaining() && contents.get() == 'P')) {
+                        if (contents.hasRemaining() && contents.get() != 'P' && currentProcess != processes) {
                             System.err.println("Corrupted project file detected");
                         }
 
