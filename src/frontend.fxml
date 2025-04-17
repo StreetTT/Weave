@@ -18,7 +18,10 @@
                       <MenuItem mnemonicParsing="false" onAction="#saveProject" text="Save project" />
                       <MenuItem mnemonicParsing="false" onAction="#saveProjectAs" text="Save project as" />
                       <MenuItem mnemonicParsing="false" onAction="#openProject" text="Open project" />
-                      <MenuItem mnemonicParsing="false" text="Recent projects" />
+                      <Menu fx:id="fileMenu" mnemonicParsing="false" text="Recent projects">
+                          <items>
+                          </items>
+                      </Menu>
                       <MenuItem mnemonicParsing="false" text="Export current project" />
                   </items>
                 </Menu>

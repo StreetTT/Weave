@@ -1,5 +1,8 @@
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.Menu;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.Region;
@@ -15,6 +18,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
+
 
 //NOTE:(Ray) Maybe take the new classes for PBlockRect and PopupEditor and move them into jxml styles
 // and port the existing classes to controllers????
@@ -25,11 +30,22 @@ public class FrontendController {
     @FXML
     private Region spacer;
     private ArrayList<WeaveProcess> selectedProcesses = new ArrayList<>();
+    private static final int MAX_RECENT = 5;    // max ammount of recent projects
+    private static final String RECENT_PROJECTS_FILE = "recent_projects.txt";   // gonna change this to store somewhere else
+    @FXML private Menu fileMenu;
 
     public void initialize() {
         addRow();
         addRow();
+        loadRecentProjects();
+        populateRecentProjectsMenu();
+
     }
+
+    private List<String> recentProjects = new ArrayList<>();
+
+
+
 
     public ProcessRow addRow() {
         // Create a new row
@@ -80,12 +96,7 @@ public class FrontendController {
         return Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
     }
 
-    public void openProject() {
-        File file = this.showOpenDialogBox();
-        if (file == null) {
-            return;
-        }
-
+    public void loadProject(File file) {
         Scheduler.Scheduler().projectDir = file.getParent().toString();
 
         //adds the first row by defult
@@ -109,7 +120,7 @@ public class FrontendController {
             for (int i = 0; i < projectNameLength; ++i) {
                 projectName.append(contents.getChar());
             }
-
+            updateRecentProjects(file.getAbsolutePath());
             Scheduler.Scheduler().projectName = projectName.toString();
             int processes = contents.getInt();
             //TODO(Ray): Extract and unit test
@@ -177,6 +188,71 @@ public class FrontendController {
                     //go back one byte
                     contents.position(contents.position() - 1);
                 }
+            }
+        }
+    }
+
+    public void openProject() {
+        File file = this.showOpenDialogBox();
+        if (file == null) {
+            return;
+        }
+        loadProject(file);
+    }
+
+    private void populateRecentProjectsMenu() {
+        fileMenu.getItems().clear();
+
+        for (String path : recentProjects) {
+            MenuItem item = new MenuItem(path);
+            item.setOnAction(e -> openProjectFromPath(path));
+            fileMenu.getItems().add(item);
+        }
+    }
+
+    private void openProjectFromPath(String path) {
+        File file = new File(path);
+        if (file.exists()) {
+            loadProject(file);
+        } else {
+            //gonna change all of this
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText("The File was not found");
+            alert.setContentText("The selected recent project no longer exists here.");
+            alert.showAndWait();
+            recentProjects.remove(path);
+            saveRecentProjects();
+            populateRecentProjectsMenu();
+        }
+    }
+
+    private void updateRecentProjects(String path) {
+        recentProjects.remove(path);
+        recentProjects.add(0, path);
+
+        if (recentProjects.size() > MAX_RECENT) {
+            recentProjects = new ArrayList<>(recentProjects.subList(0, MAX_RECENT));
+        }
+
+        saveRecentProjects();
+        populateRecentProjectsMenu();
+    }
+
+    private void saveRecentProjects() {
+        try {
+            Files.write(Paths.get(RECENT_PROJECTS_FILE), recentProjects, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            System.err.println("Failed to save recent projects");
+        }
+    }
+
+    private void loadRecentProjects() {
+        Path path = Paths.get(RECENT_PROJECTS_FILE);
+        if (Files.exists(path)) {
+            try {
+                recentProjects = new ArrayList<>(Files.readAllLines(path, StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                System.err.println("Failed to read recent projects");
             }
         }
     }
