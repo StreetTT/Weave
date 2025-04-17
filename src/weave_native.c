@@ -121,7 +121,6 @@ JNIEXPORT void JNICALL Java_SharedMemory_Init(JNIEnv *env, jclass cls) {
                 }
         }
 
-
         //setup stdout pipe & scrollback buffer for output terminal
         {
                 SECURITY_ATTRIBUTES s = { .nLength = sizeof(s), .bInheritHandle = TRUE };
@@ -164,8 +163,6 @@ JNIEXPORT void JNICALL Java_SharedMemory_Init(JNIEnv *env, jclass cls) {
                 VirtualFree(placeholder2, 0, MEM_RELEASE);
                 CloseHandle(section);
         }
-
-
 }
 
 JNIEXPORT jobject JNICALL Java_SharedMemory_GetSignalArray(JNIEnv *env, jclass cls) {

@@ -22,7 +22,10 @@ public class Scheduler {
 
     public String projectName;
     public String projectDir;
-  
+
+    public static final int WEAVE_FILE_IDENTIFIER  = (byte)('W') | (((byte)('E')) << 8) | (((byte)'V') << 16) | (((byte)'E') << 24);
+    public static final int PROCESS_IDENTIFIER = (byte)('P') | (((byte)'O') << 8) | (((byte)'C') << 16) | (((byte)'B') << 24);
+
     private Scheduler() {
     }
 
@@ -220,16 +223,13 @@ public class Scheduler {
     }
 
     //TODO(Ray): 100% can unit test this function
-    //TODO(Ray): Checksums???
     public void saveProjectFile(ArrayList<WeaveProcess> processes, String filename) {
         Path path = Paths.get(this.projectDir + "/" + filename + ".wve");
-        ByteBuffer bytesToWrite = ByteBuffer.allocate(255 * processes.size());
+        ByteBuffer bytesToWrite = ByteBuffer.allocate(256 * processes.size());
+
         bytesToWrite.order(ByteOrder.LITTLE_ENDIAN); // little endian on every architecture that matters
-        int fileIdentifier = 'W' | 'E' << 8 | 'V' << 16 | 'E' << 24;
-
-        bytesToWrite.putInt(fileIdentifier);
+        bytesToWrite.putInt(WEAVE_FILE_IDENTIFIER);
         bytesToWrite.putInt(1); // version
-
         bytesToWrite.putInt(this.projectName.toCharArray().length * Character.BYTES);
 
         for (char c: this.projectName.toCharArray()) {
@@ -237,19 +237,23 @@ public class Scheduler {
         }
 
         bytesToWrite.putInt(processes.size());
-
         for (int i = 0; i < processes.size(); ++i) {
+            bytesToWrite.putInt(PROCESS_IDENTIFIER); // 4 bytes
             WeaveProcess process = processes.get(i);
-            bytesToWrite.putInt(process.largestIndex + 1);
-            for (int j = 0; j <= process.largestIndex; ++j) {
-                Block block = process.blocks[j];
-                if (block == null) {
-                    bytesToWrite.put((byte)0);
-                } else {
-                    bytesToWrite.put((byte)1);
+            for (int j = 0; j < 256 / 8; ++j) {
+                byte blocksByte = 0;
+                for (int k = 0; k < 8; ++k) {
+                    Block block = process.blocks[(j * 8) + k];
+                    if (block != null) {
+                        blocksByte |= (1 << k);
+                    }
                 }
+
+                bytesToWrite.put(blocksByte);
             }
         }
+
+        //TODO(Ray): CHKSUM
 
         try {
             Files.write(path, bytesToWrite.array());

@@ -1,3 +1,4 @@
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
@@ -5,13 +6,11 @@ import javafx.scene.layout.Region;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -100,53 +99,85 @@ public class FrontendController {
 
         contents.order(ByteOrder.LITTLE_ENDIAN);
         int fileIdentifier = contents.getInt();
-        if (fileIdentifier == ('W' | 'E' << 8 | 'V' << 16 | 'E' << 24)) {
+        if (fileIdentifier == Scheduler.WEAVE_FILE_IDENTIFIER) {
             processContainer.getChildren().clear();
             Frontend.processes.clear();
             int version = contents.getInt(); // ignore the version we literally only have one
             StringBuilder projectName = new StringBuilder();
-            int project_name_length = contents.getInt() / Character.BYTES;
+            int projectNameLength = contents.getInt() / Character.BYTES;
 
-            for (int i = 0; i < project_name_length; ++i) {
+            for (int i = 0; i < projectNameLength; ++i) {
                 projectName.append(contents.getChar());
             }
 
             Scheduler.Scheduler().projectName = projectName.toString();
-
             int processes = contents.getInt();
-
+            //TODO(Ray): Extract and unit test
             // Deserialise proceess data
-            for (int i = 0; i < processes; ++i) {
-                ProcessRow row = addRow();
-                int blocks = contents.getInt();
-                // read in entire file and parse
-                Path processFile = Paths.get(Scheduler.Scheduler().projectDir + "/sourceFiles/" + projectName + "_PROCESS_" + (i + 1) + ".py");
-                byte[] processFileContents = new byte[0];
-                try {
-                    processFileContents = Files.readAllBytes(processFile);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
 
-                String processFileString = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(processFileContents)).toString();
+            int currentProcess = 0;
 
+            while (contents.hasRemaining()) {
+                boolean validProcess = false;
+                int remaining = contents.remaining();
+                int identifierShiftMul = 0;
+                for (int i = 0; i < remaining; ++i) {
+                    int shift = (identifierShiftMul * 8);
+                    if (contents.get() == ((Scheduler.PROCESS_IDENTIFIER >> shift) & 0xFF)) {
+                        ++identifierShiftMul;
+                    } else {
+                        identifierShiftMul = 0;
+                    }
 
-                for (int j = 0; j < blocks; ++j) {
-                    byte block = contents.get();
-                    if (block == 1) {
-                        PBlockRect uiBlock = row.gridPaneRow.findRectFromCol(j);
-                        int functionIdx = processFileString.indexOf("process_func_block_" + j + "():\n    try:");
-                        int blockStartIdx = processFileString.indexOf("        ", functionIdx);
-                        int blockEndIdx = processFileString.indexOf("\n        pass", blockStartIdx);
-                        String blockString = processFileString.substring(blockStartIdx, blockEndIdx);
-                        blockString = blockString.indent(-8); // remove indents
-                        uiBlock.activateBlock();
-                        uiBlock.block.fileContents = new StringBuilder(blockString);
+                    if (identifierShiftMul == 4) {
+                        validProcess = true;
+                        break;
                     }
                 }
+
+                if (validProcess) {
+                    if (contents.remaining() > (256 / 8)) {
+                        ProcessRow row = addRow();
+                        // read in entire file and parse
+                        Path processFile = Paths.get(Scheduler.Scheduler().projectDir + "/sourceFiles/" + projectName + "_PROCESS_" + (currentProcess + 1) + ".py");
+                        currentProcess++;
+                        byte[] processFileContents = new byte[0];
+                        try {
+                            processFileContents = Files.readAllBytes(processFile);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        String processFileString = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(processFileContents)).toString();
+                        for (int j = 0; j < 256 / 8; ++j) {
+                            byte block = contents.get();
+                            for (int k = 0; k < 8; ++k) {
+                                int currentBlockIdx = j * 8 + k;
+                                int currentBit = (1 << k);
+                                if ((block & (currentBit)) == currentBit) {
+                                    PBlockRect uiBlock = row.gridPaneRow.findRectFromCol(currentBlockIdx);
+                                    int functionIdx = processFileString.indexOf("process_func_block_" + currentBlockIdx + "():\n    try:");
+                                    int blockStartIdx = processFileString.indexOf("        ", functionIdx);
+                                    int blockEndIdx = processFileString.indexOf("\n        pass", blockStartIdx);
+                                    String blockString = processFileString.substring(blockStartIdx, blockEndIdx);
+                                    blockString = blockString.indent(-8); // remove indents
+                                    uiBlock.activateBlock();
+                                    uiBlock.block.fileContents = new StringBuilder(blockString);
+                                }
+                            }
+                        }
+
+                        if (!(contents.hasRemaining() && contents.get() == 'P')) {
+                            System.err.println("Corrupted project file detected");
+                        }
+
+                    } else {
+                        System.err.println("Corrupted project file detected");
+                    }
+                    //go back one byte
+                    contents.position(contents.position() - 1);
+                }
             }
-        } else {
-            System.err.println("Invalid Project File");
         }
     }
 
