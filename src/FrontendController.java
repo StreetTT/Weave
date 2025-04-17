@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.prefs.Preferences;
 
 
 //NOTE:(Ray) Maybe take the new classes for PBlockRect and PopupEditor and move them into jxml styles
@@ -30,9 +31,11 @@ public class FrontendController {
     @FXML
     private Region spacer;
     private ArrayList<WeaveProcess> selectedProcesses = new ArrayList<>();
-    private static final int MAX_RECENT = 5;    // max ammount of recent projects
-    private static final String RECENT_PROJECTS_FILE = "recent_projects.txt";   // gonna change this to store somewhere else
+    private static final int MAX_RECENT = 5;    // max amount of recent projects
+    private final Preferences prefs = Preferences.userNodeForPackage(FrontendController.class);
+    private static final String RECENT_PROJECT_KEY = "recentProject_";
     @FXML private Menu fileMenu;
+
 
     public void initialize() {
         addRow();
@@ -239,20 +242,21 @@ public class FrontendController {
     }
 
     private void saveRecentProjects() {
-        try {
-            Files.write(Paths.get(RECENT_PROJECTS_FILE), recentProjects, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            System.err.println("Failed to save recent projects");
+        for (int i = 0; i < MAX_RECENT; i++) {
+            prefs.remove(RECENT_PROJECT_KEY + i);
+        }
+
+        for (int i = 0; i < recentProjects.size(); i++) {
+            prefs.put(RECENT_PROJECT_KEY + i, recentProjects.get(i));
         }
     }
 
     private void loadRecentProjects() {
-        Path path = Paths.get(RECENT_PROJECTS_FILE);
-        if (Files.exists(path)) {
-            try {
-                recentProjects = new ArrayList<>(Files.readAllLines(path, StandardCharsets.UTF_8));
-            } catch (IOException e) {
-                System.err.println("Failed to read recent projects");
+        recentProjects.clear();
+        for (int i = 0; i < MAX_RECENT; i++) {
+            String path = prefs.get(RECENT_PROJECT_KEY + i, null);
+            if (path != null) {
+                recentProjects.add(path);
             }
         }
     }
