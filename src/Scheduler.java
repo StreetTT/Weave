@@ -147,11 +147,11 @@ public class Scheduler {
                 fullFileString.append("\n\n");
 
                 // release the mutex even if an exception occurs
-                fullFileString.append("    finally:\n");
+                fullFileString.append("    except Exception as e:\n" + INDENT + "__WEAVE.__WEAVE_PROCESS_END()\n" + INDENT + "raise e\n\n");
                 if (blockIdx != process.largestIndex) {
-                    fullFileString.append(INDENT + "__WEAVE.__WEAVE_WAIT_TILL_SCHEDULED()\n");
+                    fullFileString.append("    __WEAVE.__WEAVE_WAIT_TILL_SCHEDULED()\n");
                 } else {
-                    fullFileString.append(INDENT + "__WEAVE.__WEAVE_PROCESS_END()\n");
+                    fullFileString.append("    __WEAVE.__WEAVE_PROCESS_END()\n");
                 }
             }
 

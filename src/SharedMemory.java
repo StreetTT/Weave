@@ -108,6 +108,7 @@ public class SharedMemory {
         System.loadLibrary("./lib/weave_native");
     }
 
+    //TODO(Ray): Write Tests and delete this
     //TODO(Ray): Convert this into a more general Run function inside the scheduler
     //TODO(Ray): stop using stdio to debug and use sharedmemeory instead
     //TODO(Ray): Move testing code out of main

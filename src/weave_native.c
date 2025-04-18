@@ -88,7 +88,7 @@ JNIEXPORT void JNICALL Java_SharedMemory_ReaderThreadStart(JNIEnv *env, jclass c
         }
 }
 
-JNIEXPORT void JNICALL Java_SharedMemory_ReaderThreadStop(JNIEnv *env, jclass cls) {
+JNIEXPORT void JNICALL Java_SharedMemory_ReaderThreadStop(JNIEnv *env, jobject obj) {
         assert(READER.started == TRUE);
         InterlockedExchange(&READER.started, FALSE);
         while (READER.working == TRUE) {
@@ -213,7 +213,6 @@ JNIEXPORT jlong JNICALL Java_SharedMemory_CreatePythonProcess(JNIEnv *env, jclas
 }
 
 JNIEXPORT jobject JNICALL Java_SharedMemory_GetProcessesOutput(JNIEnv *env, jclass cls) {
-
         uint64_t abs_read_offset = max(0, READER.scrollback_write_offset - READER.scrollback_buffer_size);
         int read_size = READER.scrollback_write_offset - abs_read_offset;
         int relative_read_offset = abs_read_offset & (READER.scrollback_buffer_size - 1); // mask off the high bits to get an offset

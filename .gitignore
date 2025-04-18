@@ -44,7 +44,9 @@ hs_err_pid*
 replay_pid*
 /test-reports
 /testproj
+.DS_Store
 *.wve
 *.wve
 *.wve
 /test-reports
+/TestingRunProcesses
