@@ -2,11 +2,11 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import com.jfoenix.controls.*?>
+<?import javafx.scene.text.*?>
 
 <AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="FrontendController">
    <children>
-      <BorderPane layoutX="-1.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+      <BorderPane layoutX="-1.0" minHeight="-Infinity" minWidth="-Infinity" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <top>
             <!-- Menu bar for tools -->
             <MenuBar BorderPane.alignment="CENTER">
@@ -44,12 +44,23 @@
             </MenuBar>
          </top>
          <left>
-            <VBox fx:id="processContainer" alignment="CENTER_LEFT" fillWidth="false" prefHeight="400.0" prefWidth="200.0" spacing="10.0" BorderPane.alignment="CENTER_LEFT">
+            <VBox fx:id="processContainer" alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="200.0" spacing="10.0" BorderPane.alignment="CENTER_LEFT">
                <children>
                   <!-- Rows to be added here -->
                </children>
             </VBox>
          </left>
+         <bottom>
+            <ScrollPane maxHeight="-Infinity" minHeight="-Infinity" prefHeight="219.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+               <content>
+                  <Text fx:id="outputTerminal" cache="true" cacheHint="SPEED" strokeType="OUTSIDE" strokeWidth="0.0">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </Text>
+               </content>
+            </ScrollPane>
+         </bottom>
       </BorderPane>
    </children>
 </AnchorPane>

@@ -1,16 +1,19 @@
+import com.sun.javafx.collections.ImmutableObservableList;
+import javafx.beans.property.ReadOnlyListProperty;
+import javafx.beans.property.SimpleListProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.Menu;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.Region;
+import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -26,6 +29,9 @@ public class FrontendController {
     public VBox processContainer;
     @FXML
     public Region spacer;
+    @FXML
+    public Text outputTerminal;
+
     private ArrayList<WeaveProcess> selectedProcesses = new ArrayList<>();
     private static final int MAX_RECENT = 5;    // max amount of recent projects
     private final Preferences prefs = Preferences.userNodeForPackage(FrontendController.class);
@@ -71,12 +77,23 @@ public class FrontendController {
         return newRow;
     }
 
+    public void updateOutputTerminal() {
+        String outputString = StandardCharsets.UTF_8.decode(WeaveNativeFactory.get().GetProcessesOutput()).toString();
+        ObservableList<String> stringList = FXCollections.observableArrayList(outputString);
+        this.outputTerminal.setText(outputString);
+
+    }
+
     public void runProcesses() {
+        //TOOD: Prompt the user to save before running processes
+        Scheduler.Scheduler().saveProjectFile(Frontend.processes, Scheduler.Scheduler().projectName);
         Scheduler.Scheduler().runProcesses(Frontend.processes);
+        updateOutputTerminal();
     }
 
     public void runSelectedProcesses() {
         Scheduler.Scheduler().runProcesses(selectedProcesses);
+        updateOutputTerminal();
     }
 
     public void saveProjectAs(){

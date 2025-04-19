@@ -168,7 +168,6 @@ public class Scheduler {
             }
         }
 
-        saveProjectFile(processes, this.projectName);
         return true;
     }
 
@@ -201,6 +200,7 @@ public class Scheduler {
             wn.RunPidsAndWait(pids);
         }
 
+
         wn.ReaderThreadStop(); // Call this otherwise thread is just wasting system resources
 
         // NOTE(Ray): Need to release all mutexes here, since on when we enter the function again we will try to acquire
@@ -211,6 +211,7 @@ public class Scheduler {
         }
 
         wn.resetSignalArray(pids);
+
     }
 
     //TODO(Ray): 100% can unit test this function
