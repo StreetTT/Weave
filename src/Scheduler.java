@@ -211,10 +211,6 @@ public class Scheduler {
         }
 
         wn.resetSignalArray(pids);
-
-        ByteBuffer buffer = wn.GetProcessesOutput();
-        System.out.println(StandardCharsets.UTF_8.decode(buffer));
-
     }
 
     //TODO(Ray): 100% can unit test this function

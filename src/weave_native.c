@@ -165,6 +165,7 @@ JNIEXPORT jobject JNICALL Java_WeaveNativeImpl_GetSignalArray(JNIEnv *env, jobje
         return (*env)->NewDirectByteBuffer(env, (char *)(MAPPED_FILE) + (sizeof(HANDLE) * MAX_PROCESSES), MAX_PROCESSES);
 }
 
+
 JNIEXPORT void JNICALL Java_WeaveNativeImpl_DeInit(JNIEnv *env, jobject obj) {
         UnmapViewOfFile(MAPPED_FILE);
         CloseHandle(FILE_HANDLE);
@@ -213,6 +214,10 @@ JNIEXPORT jobject JNICALL Java_WeaveNativeImpl_GetProcessesOutput(JNIEnv *env, j
         int read_size = READER.scrollback_write_offset - abs_read_offset;
         int relative_read_offset = abs_read_offset & (READER.scrollback_buffer_size - 1); // mask off the high bits to get an offset
         return (*env)->NewDirectByteBuffer(env, (READER.scrollback_buffer1 + relative_read_offset), read_size);
+}
+
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_ClearProcessOutput(JNIEnv *env, jobject obj) {
+    READER.scrollback_write_offset = 0;
 }
 
 JNIEXPORT jboolean JNICALL Java_WeaveNativeImpl_isProcessAlive(JNIEnv *env, jobject obj, jlong pHandle) {

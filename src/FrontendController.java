@@ -23,15 +23,15 @@ import java.util.prefs.Preferences;
 
 public class FrontendController {
     @FXML
-    private VBox processContainer;
+    public VBox processContainer;
     @FXML
-    private Region spacer;
+    public Region spacer;
     private ArrayList<WeaveProcess> selectedProcesses = new ArrayList<>();
     private static final int MAX_RECENT = 5;    // max amount of recent projects
     private final Preferences prefs = Preferences.userNodeForPackage(FrontendController.class);
     private static final String RECENT_PROJECT_KEY = "recentProject_";
     private List<String> recentProjects = new ArrayList<>();
-    @FXML private Menu fileMenu;
+    @FXML public Menu fileMenu;
 
 
     public void initialize() {
@@ -115,6 +115,7 @@ public class FrontendController {
             for (int i = 0; i < projectNameLength; ++i) {
                 projectName.append(contents.getChar());
             }
+
             updateRecentProjects(file.getAbsolutePath());
             Scheduler.Scheduler().projectName = projectName.toString();
             int processes = contents.getInt();

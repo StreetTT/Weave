@@ -10,6 +10,7 @@ public class WeaveNativeStub implements WeaveNative {
     public void RunPidsAndWait(int[] pids) {}
     public void CreatePythonProcess(int pid, String process) {}
     public void resetSignalArray(int[] pids) {}
+    public void ClearProcessOutput() {}
 
     public boolean allProcessesFinished(int[] pids) {
         return true;

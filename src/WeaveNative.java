@@ -7,6 +7,7 @@ public interface WeaveNative {
     public void ReleaseProcess(int pid);
     public void WaitForProcess(int pid);
     public ByteBuffer GetProcessesOutput();
+    public void ClearProcessOutput();
     public void ReaderThreadStart();
     public void ReaderThreadStop();
     public void RunPidsAndWait(int[] pids);

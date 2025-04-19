@@ -50,3 +50,4 @@ replay_pid*
 *.wve
 /test-reports
 /TestingRunProcesses
+/pyTest/tmp/*

@@ -63,6 +63,14 @@ JNIEXPORT jobject JNICALL Java_WeaveNativeImpl_GetProcessesOutput
 
 /*
  * Class:     WeaveNativeImpl
+ * Method:    ClearProcessOutput
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_ClearProcessOutput
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     WeaveNativeImpl
  * Method:    CreatePythonProcess
  * Signature: (Ljava/lang/String;)J
  */

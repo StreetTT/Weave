@@ -40,10 +40,8 @@ def __WEAVE_PROCESS_START(pid):
     LIB.python_mutex_lock.restype = None
     LIB.python_mutex_release.restype = None
 
-    print("Attempting to lock mutex for {PID}")
     LIB.python_mutex_lock(__WEAVE_PID_TO_MUTEX(PID))
     WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] = 1
-    print("LOCKED MUTEX for {PID}")
 
 # Must occur after every single function call/block
 def __WEAVE_WAIT_TILL_SCHEDULED():

@@ -9,6 +9,7 @@ public class WeaveNativeImpl implements WeaveNative {
     public native void ReleaseProcess(int pid);
     public native void WaitForProcess(int pid);
     public native ByteBuffer GetProcessesOutput();
+    public native void ClearProcessOutput();
     private native long CreatePythonProcess(String process);
     private native boolean isProcessAlive(long pHandle);
     public native void ReaderThreadStart();
