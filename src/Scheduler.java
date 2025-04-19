@@ -7,16 +7,11 @@ import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Optional;
 import javafx.scene.control.TextInputDialog;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 
 public class Scheduler {
     private static Scheduler singleton_ref = null;
     private static final String PROCESS_FILE_HEADER = "import weave_shared as __WEAVE\n";
-    private static final String PROCESS_FILE_FOOTER = "__WEAVE.__WEAVE_PROCESS_END()";
     private static final String FUNCTION_HEADER = "process_func_block_";
-    private static final String DIRECTORY_SEPARATOR = FileSystems.getDefault().getSeparator();
     private static final String INDENT = "        ";
     private static final String DIRECTORY_SEPERATOR = FileSystems.getDefault().getSeparator();
 
