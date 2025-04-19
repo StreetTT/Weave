@@ -15,6 +15,6 @@ public class WeaveNativeStub implements WeaveNative {
         return true;
     }
     public ByteBuffer GetProcessesOutput() {
-        return ByteBuffer.allocate(0);
+        return null;
     }
 }
