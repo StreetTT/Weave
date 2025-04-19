@@ -9,13 +9,13 @@ public class WeaveProcess {
     }
 
     public Block addBlock(int pos) {
-        //TOOD(Ray): Get from scheduler
         if (this.largestIndex < pos) {
             this.largestIndex = pos;
         }
 
         return blocks[pos] = new Block(new StringBuilder());
     }
+
     // TODO(Ray): Unit Test this function
     public void swapBlocks(int idxA, int idxB) {
         Block temp = blocks[idxA];

@@ -9,8 +9,6 @@ public interface WeaveNative {
     public ByteBuffer GetProcessesOutput();
     public void ReaderThreadStart();
     public void ReaderThreadStop();
-    public WeaveNative WeaveNative();
-
     public void RunPidsAndWait(int[] pids);
     public void CreatePythonProcess(int pid, String process);
     public void resetSignalArray(int[] pids);

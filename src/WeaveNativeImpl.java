@@ -1,38 +1,36 @@
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.LongBuffer;
 
 //TODO(Ray): Obfuscate the sharedmemroy name
 
-public class SharedMemory {
-    static private native void Init();
-    static private native ByteBuffer GetSignalArray();
-    static public native void DeInit();
-    static public native void ReleaseProcess(int pid);
-    static public native void WaitForProcess(int pid);
-    static public native ByteBuffer GetProcessesOutput();
-    static private native long CreatePythonProcess(String process);
-    static private native boolean isProcessAlive(long pHandle);
-    static public native void ReaderThreadStart();
-    static public native void ReaderThreadStop();
+public class WeaveNativeImpl implements WeaveNative {
+    private native void Init();
+    private native ByteBuffer GetSignalArray();
+    public native void DeInit();
+    public native void ReleaseProcess(int pid);
+    public native void WaitForProcess(int pid);
+    public native ByteBuffer GetProcessesOutput();
+    private native long CreatePythonProcess(String process);
+    private native boolean isProcessAlive(long pHandle);
+    public native void ReaderThreadStart();
+    public native void ReaderThreadStop();
 
     private static final int PROCESS_SLEEPING = 0;
-    private static final int PROCESS_AQUIRED = 1;
+    private static final int PROCESS_ACQUIRED = 1;
     private static final int PROCESS_FINISHED = 2;
 
-    private static SharedMemory singletonRef;
+    private static WeaveNativeImpl singletonRef;
     private ByteBuffer signalArray;
     private long[] processHandles;
 
-    private SharedMemory() {
-        SharedMemory.Init();
-        this.signalArray = SharedMemory.GetSignalArray();
+    private WeaveNativeImpl() {
+        this.Init();
+        this.signalArray = this.GetSignalArray();
         this.processHandles = new long[256];
     };
 
-    static public SharedMemory SharedMemory() {
+    static public WeaveNativeImpl WeaveNativeImpl() {
         if (singletonRef == null) {
-            singletonRef = new SharedMemory();
+            singletonRef = new WeaveNativeImpl();
         }
 
         return singletonRef;
@@ -49,7 +47,7 @@ public class SharedMemory {
         }
 
         for (int i = 0; i < activeProcessesCount; ++i) {
-            SharedMemory.ReleaseProcess(activeProcesses[i]);
+            WeaveNativeFactory.get().ReleaseProcess(activeProcesses[i]);
         }
 
         boolean allSignaled = false;
@@ -84,7 +82,7 @@ public class SharedMemory {
     }
 
     public void CreatePythonProcess(int pid, String process) {
-        long procesHandle = SharedMemory.CreatePythonProcess(process);
+        long procesHandle = this.CreatePythonProcess(process);
         processHandles[pid] = procesHandle;
     }
 
@@ -112,53 +110,4 @@ public class SharedMemory {
     //TODO(Ray): Convert this into a more general Run function inside the scheduler
     //TODO(Ray): stop using stdio to debug and use sharedmemeory instead
     //TODO(Ray): Move testing code out of main
-    public static void main(String args[]) {
-        SharedMemory s = SharedMemory.SharedMemory();
-        ByteBuffer signalArray = s.signalArray;
-
-        SharedMemory.WaitForProcess(1);
-        SharedMemory.WaitForProcess(2);
-
-        for (int i = 0; i < signalArray.capacity(); ++i) {
-            signalArray.put(i, (byte)0);
-        }
-
-        for (int i = 0; i < signalArray.capacity(); ++i) {
-            System.out.print(signalArray.get(i));
-        }
-
-        System.out.println();
-        System.out.println("------------------------------------");
-
-        long p1 = SharedMemory.CreatePythonProcess("pyTest/program1.py");
-        long p2 = SharedMemory.CreatePythonProcess("pyTest/program2.py");
-
-        s.RunPidsAndWait(new int[]{2});
-
-        for (int i = 0; i < signalArray.capacity(); ++i) {
-            System.out.print(signalArray.get(i));
-        }
-
-        System.out.println();
-        System.out.println("------------------------------------");
-
-        s.RunPidsAndWait(new int[]{1});
-
-        for (int i = 0; i < signalArray.capacity(); ++i) {
-            System.out.print(signalArray.get(i));
-        }
-        System.out.println();
-        System.out.println("------------------------------------");
-
-        s.RunPidsAndWait(new int[]{2, 1});
-
-        for (int i = 0; i < signalArray.capacity(); ++i) {
-            System.out.print(signalArray.get(i));
-        }
-
-        System.out.println();
-        System.out.println("------------------------------------");
-
-        SharedMemory.DeInit();
-    }
 }

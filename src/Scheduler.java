@@ -182,42 +182,42 @@ public class Scheduler {
     public void runProcesses(ArrayList<WeaveProcess> processes) {
         final String outputDir = "outFiles";
         this.writeProcessesToDisk(processes, outputDir);
-        SharedMemory s = SharedMemory.SharedMemory();
+        WeaveNative wn = WeaveNativeFactory.get();
         int[] pids = new int[processes.size()];
 
         for (int i = 0; i < processes.size(); ++i) {
             int pid = getPIDFromIDX(i);
-            SharedMemory.WaitForProcess(pid);
+            wn.WaitForProcess(pid);
             pids[i] = pid;
         }
 
-        //NOTE(Ray): Reader Thread sits in the background just polling to see if processes have written anything to stdout
+        //NOTE(Ray): Reader Thread sits in the background just polling to see if processes have written anything to stdout.
         // On windows, the stdout pipe will block all processes if it becomes full. The thread allows us to keep removing data
         // from the pipe without introducing any extra waiting latency for the main thread or python processes.
 
-        SharedMemory.ReaderThreadStart();
+        wn.ReaderThreadStart();
         for (int i = 0; i < processes.size(); ++i) {
             // don't need to use default file seperator here, the native C code will do the conversion for us
             String pythonFile = this.projectDir + "/" + outputDir + "/" + this.getFilenameFromIdx(i);
-            s.CreatePythonProcess(pids[i], pythonFile);
+            wn.CreatePythonProcess(pids[i], pythonFile);
         }
 
-        while (!s.allProcessesFinished(pids)) {
-            s.RunPidsAndWait(pids);
+        while (!wn.allProcessesFinished(pids)) {
+            wn.RunPidsAndWait(pids);
         }
 
-        SharedMemory.ReaderThreadStop(); // Call this otherwise thread is just wasting system resources
+        wn.ReaderThreadStop(); // Call this otherwise thread is just wasting system resources
 
         // NOTE(Ray): Need to release all mutexes here, since on when we enter the function again we will try to acquire
         //  a mutex that we already own and we will deadlock
 
         for (int i = 0; i < processes.size(); ++i) {
-            SharedMemory.ReleaseProcess(getPIDFromIDX(i));
+            wn.ReleaseProcess(getPIDFromIDX(i));
         }
 
-        s.resetSignalArray(pids);
+        wn.resetSignalArray(pids);
 
-        ByteBuffer buffer = SharedMemory.GetProcessesOutput();
+        ByteBuffer buffer = wn.GetProcessesOutput();
         System.out.println(StandardCharsets.UTF_8.decode(buffer));
 
     }

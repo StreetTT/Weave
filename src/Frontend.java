@@ -47,7 +47,7 @@ public class Frontend extends Application {
 
     public void closeFunction(WindowEvent e) {
         prematureExit(e);
-        SharedMemory.DeInit();
+        WeaveNativeFactory.get().DeInit();
     }
 
     private void prematureExit(WindowEvent e) {
@@ -86,7 +86,7 @@ public class Frontend extends Application {
         Scheduler scheduler = Scheduler.Scheduler(); // Please always do this at application start
 
         // init shared memory
-        SharedMemory.SharedMemory();
+        WeaveNativeFactory.get();
 
         scheduler.projectDir = "testproj";
         scheduler.projectName = "TEST_PROJ";

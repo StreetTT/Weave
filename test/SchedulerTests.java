@@ -8,9 +8,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
-public class savProjectFileTest {
+public class SchedulerTests {
     @Test
-    public void test() {
+    public void saveProjectFileTest() {
         Scheduler.Scheduler().projectDir = "testproj";
         Scheduler.Scheduler().projectName = "testfile";
         ArrayList<WeaveProcess> processes = new ArrayList<>();

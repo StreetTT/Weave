@@ -21,10 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.Preferences;
 
-
-//NOTE:(Ray) Maybe take the new classes for PBlockRect and PopupEditor and move them into jxml styles
-// and port the existing classes to controllers????
-
 public class FrontendController {
     @FXML
     private VBox processContainer;
@@ -34,6 +30,7 @@ public class FrontendController {
     private static final int MAX_RECENT = 5;    // max amount of recent projects
     private final Preferences prefs = Preferences.userNodeForPackage(FrontendController.class);
     private static final String RECENT_PROJECT_KEY = "recentProject_";
+    private List<String> recentProjects = new ArrayList<>();
     @FXML private Menu fileMenu;
 
 
@@ -44,11 +41,6 @@ public class FrontendController {
         populateRecentProjectsMenu();
 
     }
-
-    private List<String> recentProjects = new ArrayList<>();
-
-
-
 
     public ProcessRow addRow() {
         // Create a new row

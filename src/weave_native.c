@@ -4,7 +4,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "SharedMemory.h"
+#include "WeaveNativeImpl.h"
 
 #pragma comment (lib, "onecore")
 
@@ -62,11 +62,7 @@ static DWORD CALLBACK reader_thread(LPVOID args) {
                                 fprintf(stderr, "%.*s\n", read_size, reader->scrollback_buffer1 + relative_read_offset);
                                 fflush(stderr);
                             }
-
-
                         }
-
-
                 } else {
                         BOOL active = FALSE;
                         InterlockedExchange(&reader->working, FALSE);
@@ -76,7 +72,7 @@ static DWORD CALLBACK reader_thread(LPVOID args) {
         }
 }
 
-JNIEXPORT void JNICALL Java_SharedMemory_ReaderThreadStart(JNIEnv *env, jclass cls) {
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReaderThreadStart(JNIEnv *env, jobject obj) {
         assert(READER.working == FALSE);
         InterlockedExchange(&READER.started, TRUE); // interlocked here because cba using memory barriers
         WakeByAddressSingle(&READER.started);
@@ -88,7 +84,7 @@ JNIEXPORT void JNICALL Java_SharedMemory_ReaderThreadStart(JNIEnv *env, jclass c
         }
 }
 
-JNIEXPORT void JNICALL Java_SharedMemory_ReaderThreadStop(JNIEnv *env, jobject obj) {
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReaderThreadStop(JNIEnv *env, jobject obj) {
         assert(READER.started == TRUE);
         InterlockedExchange(&READER.started, FALSE);
         while (READER.working == TRUE) {
@@ -102,7 +98,7 @@ HANDLE pid_to_mutex(void *mutex_arr, int pid) {
         return MUTEX_ARRAY[pid - 1];
 }
 
-JNIEXPORT void JNICALL Java_SharedMemory_Init(JNIEnv *env, jclass cls) {
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_Init(JNIEnv *env, jobject obj) {
         // Setup shared memory buffers
         {
                 int mapping_size = sizeof(HANDLE) * MAX_PROCESSES + MAX_PROCESSES;
@@ -165,26 +161,26 @@ JNIEXPORT void JNICALL Java_SharedMemory_Init(JNIEnv *env, jclass cls) {
         }
 }
 
-JNIEXPORT jobject JNICALL Java_SharedMemory_GetSignalArray(JNIEnv *env, jclass cls) {
+JNIEXPORT jobject JNICALL Java_WeaveNativeImpl_GetSignalArray(JNIEnv *env, jobject obj) {
         return (*env)->NewDirectByteBuffer(env, (char *)(MAPPED_FILE) + (sizeof(HANDLE) * MAX_PROCESSES), MAX_PROCESSES);
 }
 
-JNIEXPORT void JNICALL Java_SharedMemory_DeInit(JNIEnv *env, jclass cls) {
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_DeInit(JNIEnv *env, jobject obj) {
         UnmapViewOfFile(MAPPED_FILE);
         CloseHandle(FILE_HANDLE);
         UnmapViewOfFile(READER.scrollback_buffer1);
         UnmapViewOfFile(READER.scrollback_buffer2);
 }
 
-JNIEXPORT void JNICALL Java_SharedMemory_WaitForProcess(JNIEnv *env, jclass cls, jint pid) {
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_WaitForProcess(JNIEnv *env, jobject obj, jint pid) {
         WaitForSingleObject(pid_to_mutex(MUTEX_ARRAY, pid), INFINITE);
 }
 
-JNIEXPORT void JNICALL Java_SharedMemory_ReleaseProcess(JNIEnv *env, jclass cls, jint pid) {
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReleaseProcess(JNIEnv *env, jobject obj, jint pid) {
         ReleaseSemaphore(pid_to_mutex(MUTEX_ARRAY, pid), 1, 0);
 }
 
-JNIEXPORT jlong JNICALL Java_SharedMemory_CreatePythonProcess(JNIEnv *env, jclass cls, jstring filename) {
+JNIEXPORT jlong JNICALL Java_WeaveNativeImpl_CreatePythonProcess(JNIEnv *env, jobject obj, jstring filename) {
         const char *c_filename = (*env)->GetStringUTFChars(env, filename, 0);
 
         char full_process_str[4096] = "python ";
@@ -212,14 +208,14 @@ JNIEXPORT jlong JNICALL Java_SharedMemory_CreatePythonProcess(JNIEnv *env, jclas
         return (long long)(pi.hProcess);
 }
 
-JNIEXPORT jobject JNICALL Java_SharedMemory_GetProcessesOutput(JNIEnv *env, jclass cls) {
+JNIEXPORT jobject JNICALL Java_WeaveNativeImpl_GetProcessesOutput(JNIEnv *env, jobject obj) {
         uint64_t abs_read_offset = max(0, READER.scrollback_write_offset - READER.scrollback_buffer_size);
         int read_size = READER.scrollback_write_offset - abs_read_offset;
         int relative_read_offset = abs_read_offset & (READER.scrollback_buffer_size - 1); // mask off the high bits to get an offset
         return (*env)->NewDirectByteBuffer(env, (READER.scrollback_buffer1 + relative_read_offset), read_size);
 }
 
-JNIEXPORT jboolean JNICALL Java_SharedMemory_isProcessAlive(JNIEnv *env, jclass cls, jlong pHandle) {
+JNIEXPORT jboolean JNICALL Java_WeaveNativeImpl_isProcessAlive(JNIEnv *env, jobject obj, jlong pHandle) {
         DWORD exit_code;
         if (GetExitCodeProcess((HANDLE)pHandle, &exit_code)) {
                 if (exit_code == STILL_ACTIVE) {

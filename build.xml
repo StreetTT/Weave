@@ -130,7 +130,7 @@
         <exec executable="javac">
             <arg value="-h"/>
             <arg value="${src.dir}"/>
-            <arg value="${src.dir}/SharedMemory.java"/>
+            <arg value="${src.dir}/WeaveNative*.java"/>
         </exec>
         <exec executable="cl">
             <arg value="/Febuild\"/>
@@ -143,5 +143,9 @@
             <arg value="${src.dir}/weave_native.c"/>
         </exec>
         <copy file="build/weave_native.dll" todir="${lib.dir}"/>
+        <move file="${src.dir}/WeaveNativeImpl.class" todir="./build"/>
+        <move file="${src.dir}/WeaveNativeFactory.class" todir="./build"/>
+        <move file="${src.dir}/WeaveNative.class" todir="./build"/>
+        <move file="${src.dir}/WeaveNativeStub.class" todir="./build"/>
     </target>
 </project>
