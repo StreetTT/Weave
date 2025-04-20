@@ -106,7 +106,7 @@ public class WeaveNativeImpl implements WeaveNative {
     static {
         String os = System.getProperty("os.name");
         if (os.contains("Windows")) {
-            System.loadLibrary("./lib/weave_native.dll");
+            System.loadLibrary("./lib/weave_native");
         } else if (os.contains("inux")) {
             System.load(System.getProperty("user.dir") + "/lib/weave_native.so");
         }

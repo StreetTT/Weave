@@ -1,7 +1,12 @@
+
 #ifdef __linux__
 #define _GNU_SOURCE
 #endif
 
+#include <jni.h>
+#include <stdint.h>
+#include <string.h>
+#include <assert.h>
 
 #include "WeaveNativeImpl.h"
 #define MAX_PROCESSES (256)
@@ -90,7 +95,7 @@ static DWORD CALLBACK reader_thread(LPVOID args) {
                 }
         }
 
-        return reader;
+        return 0;
 }
 
 JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReaderThreadStart(JNIEnv *env, jobject obj) {
@@ -281,10 +286,6 @@ EXPORT void python_mutex_release(void *mutex) {
 #ifdef __linux__
 #define EXPORT __attribute__((visibility("default")))
 
-#include <jni.h>
-#include <stdint.h>
-#include <string.h>
-#include <assert.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 #include <semaphore.h>
