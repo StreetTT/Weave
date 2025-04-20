@@ -32,6 +32,9 @@
     <condition property="is.macos">
         <os family="mac"/>
     </condition>
+    <condition property="is.linux">
+        <os family="unix"/>
+    </condition>
 
     <!-- Set JavaFX paths based on OS -->
     <condition property="javafx.lib.dir" value="${lib.dir}/win64/javafx-sdk-${javafx.version}/lib" else="${lib.dir}/macos-aarch64/javafx-sdk-${javafx.version}/lib">
@@ -125,8 +128,9 @@
             <arg pathref="test.classpath"/>
         </java>
     </target>
+
     <!-- Native compilation for windows -->
-    <target name="compile-c" if="is.windows">
+    <target name="compile-c-windows" if="is.windows">
         <exec executable="javac">
             <arg value="-h"/>
             <arg value="${src.dir}"/>
@@ -140,9 +144,37 @@
             <arg value="/I${java.home}\include"/>
             <arg value="/I${java.home}\include\win32"/>
             <arg value="/LD"/>
-            <arg value="${src.dir}/weave_native.c"/>
+            <arg value="${src.dir}\weave_native.c"/>
         </exec>
         <copy file="build/weave_native.dll" todir="${lib.dir}"/>
+        <move file="${src.dir}/WeaveNativeImpl.class" todir="./build"/>
+        <move file="${src.dir}/WeaveNativeFactory.class" todir="./build"/>
+        <move file="${src.dir}/WeaveNative.class" todir="./build"/>
+        <move file="${src.dir}/WeaveNativeStub.class" todir="./build"/>
+    </target>
+
+    <target name="compile-c-linux" >
+        <exec executable="javac">
+            <arg value="-h"/>
+            <arg value="./${src.dir}"/>
+            <arg value="./${src.dir}/WeaveNativeImpl.java"/>
+            <arg value="./${src.dir}/WeaveNativeFactory.java"/>
+            <arg value="./${src.dir}/WeaveNative.java"/>
+            <arg value="./${src.dir}/WeaveNativeStub.java"/>
+        </exec>
+
+        <exec executable="gcc">
+            <arg value="-oweave_native.so"/>
+            <arg value="-I${java.home}/include"/>
+            <arg value="-I${java.home}/include/linux"/>
+            <arg value="-fPIC"/>
+            <arg value="-static-libgcc"/>
+            <arg value="-shared"/>
+            <arg value="-pthread"/>
+            <arg value="${src.dir}/weave_native.c"/>
+        </exec>
+        <move file="weave_native.so" todir="./build"/>
+        <copy file="./build/weave_native.so" todir="${lib.dir}"/>
         <move file="${src.dir}/WeaveNativeImpl.class" todir="./build"/>
         <move file="${src.dir}/WeaveNativeFactory.class" todir="./build"/>
         <move file="${src.dir}/WeaveNative.class" todir="./build"/>

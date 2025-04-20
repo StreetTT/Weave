@@ -51,3 +51,4 @@ replay_pid*
 /test-reports
 /TestingRunProcesses
 /pyTest/tmp/*
+/lib/linux64/javafx-sdk-21.0.6
