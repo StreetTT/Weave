@@ -285,6 +285,8 @@ EXPORT void python_mutex_release(void *mutex) {
 
 #ifdef __linux__
 #define EXPORT __attribute__((visibility("default")))
+#define TRUE (1)
+#define FALSE (0)
 
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -297,20 +299,22 @@ EXPORT void python_mutex_release(void *mutex) {
 #include <sys/wait.h>
 #include <sys/param.h>
 #include <signal.h>
+#include <linux/futex.h>
+#include <stdatomic.h>
 
 
 
 struct Reader {
-        int pipe_write_handle;
         int pipe_read_handle;
+        int pipe_write_handle;
 
         char *scrollback_buffer1;
         char *scrollback_buffer2;
         int64_t scrollback_buffer_size;
         int64_t scrollback_write_offset;
 
-        volatile int started;
-        volatile int working;
+        volatile uint32_t started;
+        volatile uint32_t working;
 };
 
 static int MAPPING_SIZE = sizeof(sem_t) * MAX_PROCESSES + MAX_PROCESSES;
@@ -328,9 +332,95 @@ static int round_up_pow2(int value) {
         return 1U << (index + 1);
 }
 
-JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReaderThreadStart(JNIEnv *env, jobject obj) { }
+static char *reader_get_write_ptr(struct Reader *reader) {
+        return reader->scrollback_buffer1 + (reader->scrollback_write_offset & (reader->scrollback_buffer_size - 1));
+}
 
-JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReaderThreadStop(JNIEnv *env, jobject obj) { }
+static int reader_read_data(struct Reader *reader) {
+        int relative_write_offset = reader->scrollback_write_offset & (reader->scrollback_buffer_size - 1);
+
+        int bytes_read = read(reader->pipe_read_handle, reader_get_write_ptr(reader), reader->scrollback_buffer_size);
+
+        if (bytes_read != -1) {
+            reader->scrollback_write_offset += bytes_read;
+        } else {
+            bytes_read = 0;
+        }
+
+        return bytes_read;
+}
+
+
+static void *reader_thread(void *args) {
+        struct Reader *reader = (struct Reader *)args;
+        for (;;) {
+                if (reader->started) {
+                        atomic_exchange(&reader->working, TRUE);
+                        syscall(SYS_futex, &reader->working, FUTEX_WAKE_PRIVATE, 1, NULL, NULL, 0);
+                        int bytes_available;
+                        if (reader_read_data(reader))  {
+#if 0
+                            uint64_t abs_read_offset = MAX(0, reader->scrollback_write_offset - reader->scrollback_buffer_size);
+                            int read_size = reader->scrollback_write_offset - abs_read_offset;
+                            int relative_read_offset = abs_read_offset & (reader->scrollback_buffer_size - 1); // mask off the high bits to get an offset
+                            fprintf(stderr, "%.*s\n", read_size, reader->scrollback_buffer1 + relative_read_offset);
+                            fflush(stderr);
+#endif
+                        }
+                } else {
+                        atomic_exchange(&reader->working, FALSE);
+                        syscall(SYS_futex, &reader->working, FUTEX_WAKE_PRIVATE, 1, NULL, NULL, 0);
+                        syscall(SYS_futex, &reader->started, FUTEX_WAIT_PRIVATE, 0, NULL, NULL, 0);
+                }
+        }
+
+        return 0;
+}
+
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReaderThreadStart(JNIEnv *env, jobject obj) {
+        if (pipe(&READER.pipe_read_handle) == -1) {
+                fprintf(stderr, "Reader failed to create pipe\n");
+                exit(1);
+        }
+
+        fcntl(READER.pipe_read_handle, F_SETFL, fcntl(READER.pipe_read_handle, F_GETFL) | O_NONBLOCK); // set non blocking
+
+        assert(READER.working == FALSE);
+        atomic_exchange(&READER.started, TRUE); // interlocked here because cba using memory barriers
+        syscall(SYS_futex, &READER.started, FUTEX_WAKE_PRIVATE, 1, NULL, NULL, 0);
+
+        // wait until the reader thread has actually started work
+        while (READER.working == FALSE) {
+                syscall(SYS_futex, &READER.working, FUTEX_WAIT_PRIVATE, FALSE, NULL, NULL, 0);
+        }
+}
+
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReaderThreadStop(JNIEnv *env, jobject obj) {
+        assert(READER.started == TRUE);
+        atomic_exchange(&READER.started, FALSE);
+        fprintf(stderr, "ATTEMPTING FINISHED READING\n");
+        while (READER.working == TRUE) {
+                syscall(SYS_futex, &READER.working, FUTEX_WAIT_PRIVATE, TRUE, NULL, NULL, 0);
+        }
+
+        close(READER.pipe_write_handle); // close our write handle
+
+        fcntl(READER.pipe_read_handle, F_SETFL, fcntl(READER.pipe_read_handle, F_GETFL) & ~O_NONBLOCK); // set blocking again just incase
+        int ok;
+        fprintf(stderr, "ATTEMPTING FINISHED READING\n");
+        do {
+                ok = reader_read_data(&READER);
+        } while (ok);
+        fprintf(stderr, "FINISHED READING\n");
+
+        const char end_marker[] = ">>>>>>>>>>>>\n";
+        for (const char *c = end_marker; *c != '\0'; ++c) {
+                *reader_get_write_ptr(&READER) = *c;
+                READER.scrollback_write_offset++;
+        }
+
+        close(READER.pipe_read_handle); // close the pipe up
+}
 
 sem_t *pid_to_mutex(void *mutex_arr, int pid) {
         fprintf(stderr, "before assert");
@@ -343,38 +433,6 @@ sem_t *pid_to_mutex(void *mutex_arr, int pid) {
         return result;
 }
 
-
-/*
-static void *reader_thread(void* args) {
-        struct Reader *reader = (struct Reader *)args;
-        for (;;) {
-                if (reader->started) {
-                        InterlockedExchange(&reader->working, TRUE);
-                        WakeByAddressSingle(&reader->working);
-                        int bytes_available;
-                        // readfile will block waiting for data to be submitted, so we need to check there is actually something to read
-                        // before we attempt to read it
-                        PeekNamedPipe(reader->pipe_read_handle, NULL, 0, NULL, &bytes_available, NULL);
-                        if (bytes_available) {
-                            if (reader_read_data(reader))  {
-#if 0
-                                uint64_t abs_read_offset = max(0, reader->scrollback_write_offset - reader->scrollback_buffer_size);
-                                int read_size = reader->scrollback_write_offset - abs_read_offset;
-                                int relative_read_offset = abs_read_offset & (reader->scrollback_buffer_size - 1); // mask off the high bits to get an offset
-                                fprintf(stderr, "%.*s\n", read_size, reader->scrollback_buffer1 + relative_read_offset);
-                                fflush(stderr);
-#endif
-                            }
-                        }
-                } else {
-                        BOOL active = FALSE;
-                        InterlockedExchange(&reader->working, FALSE);
-                        WakeByAddressSingle(&reader->working);
-                        WaitOnAddress(&reader->started, &active, sizeof(reader->started), INFINITE);
-                }
-        }
-}
-*/
 
 JNIEXPORT void JNICALL Java_WeaveNativeImpl_Init(JNIEnv *env, jobject obj) {
         // Setup shared memory buffers
@@ -423,14 +481,10 @@ JNIEXPORT void JNICALL Java_WeaveNativeImpl_Init(JNIEnv *env, jobject obj) {
 
                 assert(READER.scrollback_buffer1 != MAP_FAILED && READER.scrollback_buffer2 != MAP_FAILED);
 
-                // kick off the reader thread
-                /*
                 pthread_attr_t attr = {};
                 pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
                 pthread_t thread;
-                */
-
-                //pthread_create(&thread, &attr, reader_thread, &READER,);
+                pthread_create(&thread, &attr, reader_thread, &READER);
                 close(scrollback_fd);
         }
 }
@@ -474,6 +528,12 @@ JNIEXPORT jlong JNICALL Java_WeaveNativeImpl_CreatePythonProcess(JNIEnv *env, jo
             char fd_string[10];
             snprintf(fd_string, sizeof(fd_string), "%d", FILE_HANDLE);
             fprintf(stderr, "fdstring: %s\n", fd_string);
+
+            //Redirect stdout
+            close(READER.pipe_read_handle);
+            dup2(READER.pipe_write_handle, STDOUT_FILENO);
+            close(READER.pipe_write_handle);
+
             setenv("WEAVE_SHARED_MAP", fd_string, 1);
             execlp("python3", "python3", c_filename, NULL);
         } else {
