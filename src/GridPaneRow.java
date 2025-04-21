@@ -92,11 +92,16 @@ public class GridPaneRow extends GridPane {
                 if (newCol != initialCol) {
                     // click and hold
                     if (duration > 100) {
-                        this.getChildren().removeAll(dragRect, rect);
-                        this.add(dragRect, newCol, 0);
-                        this.add(rect, initialCol, 0);
-                        this.process.swapBlocks(initialCol, newCol);
+                        if (event.isControlDown()) {
+                            dragRect.duplicateState(rect);
+                        } else {
+                            this.getChildren().removeAll(dragRect, rect);
+                            this.add(dragRect, newCol, 0);
+                            this.add(rect, initialCol, 0);
+                            this.process.swapBlocks(initialCol, newCol);
+                        }
                     }
+
                 }
 
                 // change the selected rect or deselect the current selectedRect

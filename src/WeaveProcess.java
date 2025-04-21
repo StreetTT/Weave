@@ -16,6 +16,10 @@ public class WeaveProcess {
         return blocks[pos] = new Block(new StringBuilder());
     }
 
+    public Block duplicateBlock(int pos, Block block) {
+        return blocks[pos] = block.deepCopy();
+    }
+
     // TODO(Ray): Unit Test this function
     public void swapBlocks(int idxA, int idxB) {
         Block temp = blocks[idxA];
