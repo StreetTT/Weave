@@ -395,6 +395,7 @@ JNIEXPORT void JNICALL Java_WeaveNativeImpl_Init(JNIEnv *env, jobject obj) {
 
                 MUTEX_ARRAY = (sem_t *)MAPPED_FILE;
                 fprintf(stderr, "MUTEX_ARRAY: %p\n", MUTEX_ARRAY);
+                fprintf(stderr, "sem_t size: %lu\n", sizeof(sem_t));
                 for (int i = 0; i < MAX_PROCESSES; ++i) {
                         sem_init(MUTEX_ARRAY + i, 1, 1);
                 }
@@ -405,6 +406,9 @@ JNIEXPORT void JNICALL Java_WeaveNativeImpl_Init(JNIEnv *env, jobject obj) {
                 // allocate physical mapping
                 READER.scrollback_buffer_size = round_up_pow2(READER_BUFFER_SIZE);
                 int scrollback_fd = memfd_create("ring_buffer", MFD_CLOEXEC);
+                if (scrollback_fd == -1)  {
+                        fprintf(stderr, "Failed to get scrollback mapping");
+                }
 
                 if (ftruncate(scrollback_fd, READER.scrollback_buffer_size) == -1) {
                         fprintf(stderr, "Failed to truncate ring buffer\n");
@@ -417,12 +421,14 @@ JNIEXPORT void JNICALL Java_WeaveNativeImpl_Init(JNIEnv *env, jobject obj) {
                                                          READER.scrollback_buffer_size, PROT_READ | PROT_WRITE,
                                                          MAP_SHARED | MAP_FIXED, scrollback_fd, 0);
 
-                assert(READER.scrollback_buffer1 && READER.scrollback_buffer2);
+                assert(READER.scrollback_buffer1 != MAP_FAILED && READER.scrollback_buffer2 != MAP_FAILED);
 
                 // kick off the reader thread
+                /*
                 pthread_attr_t attr = {};
                 pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
                 pthread_t thread;
+                */
 
                 //pthread_create(&thread, &attr, reader_thread, &READER,);
                 close(scrollback_fd);
@@ -443,7 +449,7 @@ JNIEXPORT void JNICALL Java_WeaveNativeImpl_DeInit(JNIEnv *env, jobject obj) {
 
 JNIEXPORT void JNICALL Java_WeaveNativeImpl_WaitForProcess(JNIEnv *env, jobject obj, jint pid) {
         fprintf(stderr, "Waitig for sem\n");
-        if(sem_wait(pid_to_mutex(MUTEX_ARRAY, pid)) == -1) {
+        if (sem_wait(pid_to_mutex(MUTEX_ARRAY, pid)) == -1) {
             fprintf(stderr, "failed waiting for sem\n");
         }
 }

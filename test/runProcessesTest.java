@@ -61,5 +61,6 @@ public class runProcessesTest {
         String output = getOutputandClear();
         output = output.replace("\r", "");
         assertEquals("0\n100\n200\n", output);
+        WeaveNativeFactory.get().DeInit();
     }
 }
