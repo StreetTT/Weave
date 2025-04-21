@@ -4,7 +4,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 
-public class PBlockRect extends Rectangle {
+public class PBlockRect extends Rectangle implements Cloneable {
     // Links a block and its related variables in the scheduler to the Pane in the front end
     private static final int BLOCK_WIDTH = 50;
     private static final int BLOCK_HEIGHT = 50;
@@ -61,4 +61,15 @@ public class PBlockRect extends Rectangle {
     }
 
 
+    public void duplicateState(PBlockRect other) {
+        other.setFill(this.getFill());
+        if (this.block != null) {
+            other.activateBlock();
+            other.block.fileContents = new StringBuilder(this.block.fileContents);
+
+            if (this.editor != null) {
+                other.editor = new PopupEditor(this.block);
+            }
+        }
+    }
 }
