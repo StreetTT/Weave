@@ -10,8 +10,10 @@ import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
@@ -22,7 +24,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.prefs.Preferences;
+
+import javafx.stage.Modality;
+import java.util.Optional;
 
 public class FrontendController {
     @FXML
@@ -41,11 +47,71 @@ public class FrontendController {
 
 
     public void initialize() {
-        addRow();
-        addRow();
+        showStartupDialog();
         loadRecentProjects();
-        populateRecentProjectsMenu();
+        populateRecentProjectsMenu();        
 
+    }
+
+    // Add this method to your FrontendController class
+    private void showStartupDialog() {
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Welcome to Weave");
+        dialog.setHeaderText("Choose an option to continue");
+        
+        // Make dialog modal (blocks input to other windows)
+        dialog.initModality(Modality.APPLICATION_MODAL);
+
+        // Create buttons
+        ButtonType newProjectBtn = new ButtonType("New Project", ButtonBar.ButtonData.OK_DONE);
+        ButtonType openProjectBtn = new ButtonType("Open Project", ButtonBar.ButtonData.OTHER);
+        
+        // Create recent projects list
+        ListView<String> recentList = new ListView<>();
+        recentList.getItems().addAll(recentProjects);
+        recentList.setPrefHeight(100);
+        
+        VBox content = new VBox(10);
+        content.getChildren().addAll(
+            new Label("Recent Projects:"),
+            recentList
+        );
+        
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().addAll(newProjectBtn, openProjectBtn);
+
+        // Handle button clicks
+        dialog.setResultConverter(buttonType -> {
+            if (buttonType == newProjectBtn) {
+                return "new";
+            } else if (buttonType == openProjectBtn) {
+                return "open";
+            }
+            return null;
+        });
+
+        // Handle recent project selection
+        recentList.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {  // Double click
+                String selectedPath = recentList.getSelectionModel().getSelectedItem();
+                if (selectedPath != null) {
+                    dialog.close();
+                    openProjectFromPath(selectedPath);
+                }
+            }
+        });
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(action -> {
+            if (action.equals("new")) {
+                // Handle new project
+                saveProjectAs();
+                addRow();
+                addRow();
+            } else if (action.equals("open")) {
+                openProject();
+            }
+        });
     }
 
     public ProcessRow addRow() {
