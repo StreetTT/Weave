@@ -16,8 +16,8 @@ import javafx.scene.shape.Rectangle;
 import java.security.Key;
 
 public class GridPaneRow extends GridPane {
-    private static final int CELL_SIZE_WITH_PADDING = 100; // rects are 50 wide we add an extra 25 on each side to make 100
-    private static final int COLS = 10;
+    static final int CELL_SIZE_WITH_PADDING = 100; // rects are 50 wide we add an extra 25 on each side to make 100
+    static final int COLS = 10;
     private final WeaveProcess process;
 
     // for drag and drop

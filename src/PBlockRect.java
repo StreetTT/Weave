@@ -6,7 +6,7 @@ import javafx.scene.shape.Rectangle;
 
 public class PBlockRect extends Rectangle implements Cloneable {
     // Links a block and its related variables in the scheduler to the Pane in the front end
-    private static final int BLOCK_WIDTH = 50;
+    static final int BLOCK_WIDTH = 50;
     private static final int BLOCK_HEIGHT = 50;
     public final WeaveProcess process;
     public Block block;

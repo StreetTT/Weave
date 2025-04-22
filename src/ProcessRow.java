@@ -20,6 +20,11 @@ public class ProcessRow extends HBox {
     GridPaneRow gridPaneRow;
     //TODO: make the row dynamically change size when resized
 
+
+    public GridPaneRow getGridPaneRow() {
+        return gridPaneRow;
+    }
+
     public ProcessRow(WeaveProcess p) {
         process = p;
         //styling for row
@@ -151,4 +156,6 @@ public class ProcessRow extends HBox {
             selected = true; 
         }
     }
+
+
 }
