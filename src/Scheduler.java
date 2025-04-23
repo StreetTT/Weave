@@ -240,7 +240,8 @@ public class Scheduler {
     //TODO(Ray): 100% can unit test this function
     public boolean saveProjectFile(ArrayList<WeaveProcess> processes) {
         Path path = Paths.get(this.projectDir + "/" + this.projectName + ".wve");
-        ByteBuffer bytesToWrite = ByteBuffer.allocate(256 * processes.size());
+        // should be enough for all proceses and the headers
+        ByteBuffer bytesToWrite = ByteBuffer.allocate(256 * (processes.size() + 1));
 
         bytesToWrite.order(ByteOrder.LITTLE_ENDIAN); // little endian on every architecture that matters
         bytesToWrite.putInt(WEAVE_FILE_IDENTIFIER);

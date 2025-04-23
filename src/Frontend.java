@@ -22,10 +22,12 @@ public class Frontend extends Application {
     public void start(Stage primaryStage) {
 
         Parent root;
+        Scheduler.Scheduler(); // init
         try {
             root = FXMLLoader.load(getClass().getResource("frontend.fxml"));
         } catch (IOException e) {
             System.err.println("Counln't find the fxml file");
+            e.printStackTrace();
             return;
         }
 
