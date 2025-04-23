@@ -384,6 +384,7 @@ public class FrontendController {
                                 int currentBlockIdx = j * 8 + k;
                                 int currentBit = (1 << k);
                                 if ((block & (currentBit)) == currentBit) {
+                                    row.gridPaneRow.extendGridToCol(currentBlockIdx);
                                     PBlockRect uiBlock = row.gridPaneRow.findRectFromCol(currentBlockIdx);
                                     int functionIdx = processFileString.indexOf("process_func_block_" + currentBlockIdx + "():\n    try:");
                                     int blockStartIdx = processFileString.indexOf("        ", functionIdx);

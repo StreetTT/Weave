@@ -260,6 +260,7 @@ public class Scheduler {
                 byte blocksByte = 0;
                 for (int k = 0; k < 8; ++k) {
                     Block block = process.blocks[(j * 8) + k];
+
                     if (block != null) {
                         blocksByte |= (1 << k);
                     }
