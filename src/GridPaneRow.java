@@ -17,8 +17,9 @@ import java.security.Key;
 
 public class GridPaneRow extends GridPane {
     static final int CELL_SIZE_WITH_PADDING = 100; // rects are 50 wide we add an extra 25 on each side to make 100
-    static final int COLS = 10;
+    private int cols = 10;
     private final WeaveProcess process;
+
 
     // for drag and drop
     private int initialCol;
@@ -27,12 +28,17 @@ public class GridPaneRow extends GridPane {
     private PBlockRect copyRect; // for copy and past
     private long clickStartTime;
 
+
+    public int getColumnCountGridPlane() {
+        return this.getColumnConstraints().size();
+    }
+
     public GridPaneRow(WeaveProcess process) {
         super();
         this.process = process;
         setAlignment(Pos.CENTER_LEFT);
 
-        for (int i = 0; i < COLS; ++i) {
+        for (int i = 0; i < cols; ++i) {
             ColumnConstraints col = new ColumnConstraints(CELL_SIZE_WITH_PADDING);  // column size includes padding in between
             this.getColumnConstraints().add(col);
         }
@@ -40,7 +46,7 @@ public class GridPaneRow extends GridPane {
         RowConstraints row = new RowConstraints();
         this.getRowConstraints().add(row);
 
-        for (int i = 0; i < COLS; ++i) {
+        for (int i = 0; i < cols; ++i) {
             Rectangle blockRect = new PBlockRect(this.process, i);
             blockRect.setFill(new ImagePattern(PBlockRect.fillImage));
             this.add(blockRect, i, 0);
@@ -118,5 +124,19 @@ public class GridPaneRow extends GridPane {
         }
 
         dragRect = null;
+    }
+
+    public void addNewBlock() {
+        // Add new column constraint
+        ColumnConstraints col = new ColumnConstraints(CELL_SIZE_WITH_PADDING);
+        this.getColumnConstraints().add(col);
+
+        // Create and add new block
+        int newCol = cols;
+        Rectangle blockRect = new PBlockRect(this.process, newCol);
+        blockRect.setFill(new ImagePattern(PBlockRect.fillImage));
+        this.add(blockRect, newCol, 0);
+
+        cols++;
     }
 }

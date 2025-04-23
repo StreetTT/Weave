@@ -1,20 +1,29 @@
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 
 import com.jfoenix.controls.*;
 import javafx.geometry.*;
+import javafx.scene.paint.Color;
 
 import javax.lang.model.AnnotatedConstruct;
 import javax.swing.*;
 
-public class ProcessRow extends HBox {
 
+public class ProcessRow extends HBox {
+    public JFXButton addBlockButton;
     public JFXButton deleteButton;
     public JFXButton runButton;
     public JFXButton selectButton;
     public boolean selected = true;
+    private Runnable onBlockAddedCallback;
     VBox roundedContainer;
     WeaveProcess process;
     GridPaneRow gridPaneRow;
@@ -23,6 +32,10 @@ public class ProcessRow extends HBox {
 
     public GridPaneRow getGridPaneRow() {
         return gridPaneRow;
+    }
+
+    public void setOnBlockAdded(Runnable callback) {
+        this.onBlockAddedCallback = callback;
     }
 
     public ProcessRow(WeaveProcess p) {
@@ -79,7 +92,29 @@ public class ProcessRow extends HBox {
         selectButton.setTranslateY(-15);
         AnchorPane.setLeftAnchor(selectButton, 90.0);
 
-        topBar.getChildren().addAll(deleteButton, runButton, selectButton);
+        //add block button
+        this.addBlockButton = new JFXButton("+");
+        addBlockButton.setRotate(90);
+        addBlockButton.setStyle(
+                "-fx-background-color: #64b5f6;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-background-radius: 0 15 15 0;" +
+                        "-fx-padding: 4 10 4 10;"
+        );
+        addBlockButton.setTooltip(new Tooltip("Add a new block to this process"));
+        addBlockButton.setTranslateY(-15);
+        AnchorPane.setLeftAnchor(addBlockButton, 130.0);
+
+        //click handler that adds a new block
+        addBlockButton.setOnAction(e -> {
+            gridPaneRow.addNewBlock();
+            if (onBlockAddedCallback != null) {
+                Platform.runLater(() -> {
+                    onBlockAddedCallback.run();
+                });
+            }
+        });
+        topBar.getChildren().addAll(deleteButton, runButton, selectButton, addBlockButton);
 
         // CONTENT BOX AREA
 

@@ -155,6 +155,7 @@ public class FrontendController {
         Frontend.processes.add(process);
 
         ProcessRow newRow = new ProcessRow(process);
+        newRow.setOnBlockAdded(this::updateColoumLines);
 
         newRow.deleteButton.setOnAction(e -> {
                     processContainer.getChildren().remove(newRow);
@@ -227,6 +228,7 @@ public class FrontendController {
 
         //check we actually have a gridpane
         if (gridPane == null){
+            Platform.runLater(this::updateColoumLines);
             return;
         }
 
@@ -247,19 +249,13 @@ public class FrontendController {
 
         //time to draw lines
 
-        final int cols = GridPaneRow.COLS;
+        int cols = gridPane.getColumnCount(); // Use the dynamic column count
         final double cellWidth = GridPaneRow.CELL_SIZE_WITH_PADDING;
 
-        //depending on size draw lines
         for (int i = 1; i < cols; i++) {
-
-
             final double PADDING_OFFSET = (GridPaneRow.CELL_SIZE_WITH_PADDING - PBlockRect.BLOCK_WIDTH) / 2.0;
-
-
             double lineX = gridPaneStartXInOverlay + (i * cellWidth) - PADDING_OFFSET;
 
-            //DOTTED LINE UI
             Line line = new Line(lineX, startY, lineX, endY);
             line.setStroke(Color.GRAY);
             line.setStrokeWidth(1);

@@ -21,6 +21,8 @@ public class PBlockRect extends Rectangle implements Cloneable {
         this.pos = pos;
         this.process = process;
 
+        setFill(new ImagePattern(fillImage));
+
         setOnMouseClicked(this::handleClick);
         setOnMousePressed(this::handlePressed);
         setOnMouseReleased(this::handleRelease);
