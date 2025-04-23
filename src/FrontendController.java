@@ -89,11 +89,12 @@ public class FrontendController {
 
 
 
+    //FIXME: force them to name a new project
     private void showStartupDialog() {
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Welcome to Weave");
         dialog.setHeaderText("Choose an option to continue");
-        
+
         // Make dialog modal (blocks input to other windows)
         dialog.initModality(Modality.APPLICATION_MODAL);
 
@@ -279,7 +280,7 @@ public class FrontendController {
 
     public void runProcesses() {
         //TOOD: Prompt the user to save before running processes
-        Scheduler.Scheduler().saveProjectFile(Frontend.processes, Scheduler.Scheduler().projectName);
+        Scheduler.Scheduler().saveProjectFile(Frontend.processes);
         Scheduler.Scheduler().runProcesses(Frontend.processes);
         updateOutputTerminal();
     }
@@ -294,12 +295,14 @@ public class FrontendController {
         if (folder != null) {
             Scheduler.Scheduler().projectDir = folder.toString();
             Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
+            Scheduler.Scheduler().saveProjectFile(Frontend.processes);
         }
     }
 
     public boolean saveProject(){
-        Scheduler.Scheduler().saveProjectFile(Frontend.processes, "sourceFiles");
-        return Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
+        boolean ok = Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
+        ok |= Scheduler.Scheduler().saveProjectFile(Frontend.processes);
+        return ok;
     }
 
     public void loadProject(File file) {

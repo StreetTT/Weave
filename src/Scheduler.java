@@ -238,8 +238,8 @@ public class Scheduler {
     }
 
     //TODO(Ray): 100% can unit test this function
-    public void saveProjectFile(ArrayList<WeaveProcess> processes, String filename) {
-        Path path = Paths.get(this.projectDir + "/" + filename + ".wve");
+    public boolean saveProjectFile(ArrayList<WeaveProcess> processes) {
+        Path path = Paths.get(this.projectDir + "/" + this.projectName + ".wve");
         ByteBuffer bytesToWrite = ByteBuffer.allocate(256 * processes.size());
 
         bytesToWrite.order(ByteOrder.LITTLE_ENDIAN); // little endian on every architecture that matters
@@ -275,6 +275,9 @@ public class Scheduler {
         } catch (IOException e) {
             System.err.println("COULDN'T WRITE PROJECT FILE");
             e.printStackTrace();
+            return false;
         }
+
+        return true;
     }
 }
