@@ -298,6 +298,7 @@ public class FrontendController {
     }
 
     public boolean saveProject(){
+        Scheduler.Scheduler().saveProjectFile(Frontend.processes, "sourceFiles");
         return Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
     }
 
@@ -395,6 +396,8 @@ public class FrontendController {
                     contents.position(contents.position() - 1);
                 }
             }
+
+            Platform.runLater(this::updateColoumLines);
         }
     }
 
