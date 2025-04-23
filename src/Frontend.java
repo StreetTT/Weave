@@ -34,6 +34,10 @@ public class Frontend extends Application {
         primaryStage.setTitle("Weave");
         Scene scene = new Scene(root, 1280, 720);
 
+        //css for frontend
+        scene.getStylesheets().add(getClass().getResource("python-keywords.css").toExternalForm());
+        primaryStage.setScene(scene);
+
         // Window resizing listeners
         primaryStage.widthProperty().addListener((obs, oldVal, newVal) ->
                 scene.getWindow().setWidth(newVal.doubleValue()));

@@ -58,16 +58,21 @@
                     </content>
                 </ScrollPane>
 
-                <ScrollPane fitToHeight="false" minHeight="219.0" prefHeight="219.0" VBox.vgrow="NEVER"> <content>
-                    <Text fx:id="outputTerminal" cache="true" cacheHint="SPEED" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="980.0"> <font>
-                        <Font size="15.0" />
-                    </font>
-                    </Text>
-                </content>
+                <StackPane styleClass="output-container" VBox.vgrow="NEVER" minHeight="150.0" prefHeight="219.0">
+                    <VBox.margin>
+                        <Insets top="5.0" />
+                    </VBox.margin>
                     <padding>
-                        <Insets left="5.0" right="5.0" />
-                    </padding>
-                </ScrollPane>
+                        <Insets top="10.0" right="10.0" bottom="10.0" left="10.0" /> </padding>
+                    <children>
+                        <TextArea fx:id="outputTextArea" editable="false" wrapText="true" styleClass="output-terminal">
+                            <font>
+                                <Font name="Consolas" size="13.0" />
+                            </font>
+                            Output will appear here...
+                        </TextArea>
+                    </children>
+                </StackPane>
 
             </children>
         </VBox>

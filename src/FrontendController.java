@@ -1,7 +1,4 @@
-import com.sun.javafx.collections.ImmutableObservableList;
 import javafx.application.Platform;
-import javafx.beans.property.ReadOnlyListProperty;
-import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -14,9 +11,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -24,21 +19,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Line;
 import javafx.scene.paint.Color;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
-
-import javafx.stage.Modality;
-import java.util.Optional;
 
 public class FrontendController {
     @FXML
@@ -48,7 +41,7 @@ public class FrontendController {
     @FXML
     public Region spacer;
     @FXML
-    public Text outputTerminal;
+    public TextArea  outputTextArea;
 
     private ArrayList<WeaveProcess> selectedProcesses = new ArrayList<>();
     private static final int MAX_RECENT = 5;    // max amount of recent projects
@@ -277,10 +270,20 @@ public class FrontendController {
     }
 
     public void updateOutputTerminal() {
-        String outputString = StandardCharsets.UTF_8.decode(WeaveNativeFactory.get().GetProcessesOutput()).toString();
-        ObservableList<String> stringList = FXCollections.observableArrayList(outputString);
-        this.outputTerminal.setText(outputString);
+        //raw output string from the native layer
+        String rawOutputString = StandardCharsets.UTF_8.decode(WeaveNativeFactory.get().GetProcessesOutput()).toString(); //
 
+        if (outputTextArea != null) {
+            //adds > to each line to look cooler
+            String processedOutputString = Arrays.stream(rawOutputString.split("\\R")).map(line -> "> " + line).collect(Collectors.joining(System.lineSeparator()));
+
+            outputTextArea.setText(processedOutputString);
+
+
+            outputTextArea.setScrollTop(Double.MAX_VALUE); 
+        } else {
+            System.err.println("outputTextArea is null. Check FXML connection.");
+        }
     }
 
     public void runProcesses() {

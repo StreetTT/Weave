@@ -34,3 +34,51 @@
     -fx-text-fill: #666;
     -fx-padding: 0 5px;
 }
+
+
+.output-container {
+    -fx-background-color: #f0f0f0;
+}
+
+
+.text-area.output-terminal {
+    -fx-control-inner-background: white;
+    -fx-text-fill: black;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 13px;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+}
+
+
+.text-area.output-terminal .content {
+    -fx-background-color: -fx-control-inner-background;
+}
+
+
+.text-area.output-terminal .scroll-bar:vertical,
+.text-area.output-terminal .scroll-bar:horizontal {
+    -fx-background-color: #e0e0e0;
+}
+
+.text-area.output-terminal .scroll-bar .thumb {
+    -fx-background-color: #aaaaaa;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0.5em;
+}
+
+
+.text-area.output-terminal .scroll-bar .increment-button,
+.text-area.output-terminal .scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 0 0 0;
+}
+
+.text-area.output-terminal .scroll-bar .increment-arrow,
+.text-area.output-terminal .scroll-bar .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+}
+
