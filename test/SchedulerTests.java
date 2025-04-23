@@ -19,7 +19,7 @@ public class SchedulerTests {
         process.blocks[2] = new Block(new StringBuilder(""));
 
         processes.add(process);
-        Scheduler.Scheduler().saveProjectFile(processes, "testfile");
+        Scheduler.Scheduler().saveProjectFile(processes);
 
         ByteBuffer contents = ByteBuffer.allocate(1);
 
