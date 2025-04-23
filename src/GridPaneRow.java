@@ -33,6 +33,12 @@ public class GridPaneRow extends GridPane {
         return this.getColumnConstraints().size();
     }
 
+    private void createEmptyBlockAtCol(int col) {
+        Rectangle blockRect = new PBlockRect(this.process, col);
+        blockRect.setFill(new ImagePattern(PBlockRect.fillImage));
+        this.add(blockRect, col, 0);
+    }
+
     public GridPaneRow(WeaveProcess process) {
         super();
         this.process = process;
@@ -47,9 +53,7 @@ public class GridPaneRow extends GridPane {
         this.getRowConstraints().add(row);
 
         for (int i = 0; i < cols; ++i) {
-            Rectangle blockRect = new PBlockRect(this.process, i);
-            blockRect.setFill(new ImagePattern(PBlockRect.fillImage));
-            this.add(blockRect, i, 0);
+            createEmptyBlockAtCol(i);
         }
 
         this.setOnMousePressed(this::mouseOnPressHandler);
@@ -66,6 +70,20 @@ public class GridPaneRow extends GridPane {
         }
 
         return null;
+    }
+
+    public void extendGridToCol(int col) {
+        int oldCols = this.cols;
+        if (this.cols < col) {
+            this.cols = col;
+        }
+
+        for (int i = oldCols; i < col + 1; ++i) {
+            ColumnConstraints column = new ColumnConstraints(CELL_SIZE_WITH_PADDING);  // column size includes padding in between
+            this.getColumnConstraints().add(column);
+            createEmptyBlockAtCol(i);
+        }
+
     }
 
     private boolean isInsideGrid(double x, double y) {
