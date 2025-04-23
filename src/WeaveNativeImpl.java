@@ -18,6 +18,7 @@ public class WeaveNativeImpl implements WeaveNative {
     private static final int PROCESS_SLEEPING = 0;
     private static final int PROCESS_ACQUIRED = 1;
     private static final int PROCESS_FINISHED = 2;
+    public String platformLib;
 
     private static WeaveNativeImpl singletonRef;
     private ByteBuffer signalArray;
@@ -111,9 +112,4 @@ public class WeaveNativeImpl implements WeaveNative {
             System.load(System.getProperty("user.dir") + "/lib/weave_native.so");
         }
     }
-
-    //TODO(Ray): Write Tests and delete this
-    //TODO(Ray): Convert this into a more general Run function inside the scheduler
-    //TODO(Ray): stop using stdio to debug and use sharedmemeory instead
-    //TODO(Ray): Move testing code out of main
 }

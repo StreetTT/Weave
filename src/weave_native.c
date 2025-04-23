@@ -9,33 +9,31 @@
 #include <assert.h>
 
 #include "WeaveNativeImpl.h"
-#define MAX_PROCESSES (256)
-#define ARRSIZE(arr) sizeof(arr)/sizeof(arr[0])
-#define READER_BUFFER_SIZE (4096 * 16) // mulitple of 4KB page
+#include "weave_native.h"
+
+
+JNIEXPORT jobject JNICALL Java_WeaveNativeImpl_GetProcessesOutput(JNIEnv *env, jobject obj) {
+        uint64_t abs_read_offset = max(0, READER.scrollback_write_offset - READER.scrollback_buffer_size);
+        int read_size = READER.scrollback_write_offset - abs_read_offset;
+        int relative_read_offset = abs_read_offset & (READER.scrollback_buffer_size - 1); // mask off the high bits to get an offset
+        return (*env)->NewDirectByteBuffer(env, (READER.scrollback_buffer1 + relative_read_offset), read_size);
+}
+
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_ClearProcessOutput(JNIEnv *env, jobject obj) {
+    READER.scrollback_write_offset = 0;
+}
+
+static char *reader_get_write_ptr(struct Reader *reader) {
+        return reader->scrollback_buffer1 + (reader->scrollback_write_offset & (reader->scrollback_buffer_size - 1));
+}
+
 
 #ifdef _WIN32
 #define EXPORT __declspec(dllexport)
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #pragma comment (lib, "onecore")
 
-
-struct Reader {
-        HANDLE pipe_write_handle;
-        HANDLE pipe_read_handle;
-
-        char *scrollback_buffer1;
-        char *scrollback_buffer2;
-        int64_t scrollback_buffer_size;
-        int64_t scrollback_write_offset;
-
-        volatile BOOL started;
-        volatile BOOL working;
-};
-
-static void *MAPPED_FILE;
-static HANDLE FILE_HANDLE;
-static HANDLE *MUTEX_ARRAY;
-static struct Reader READER;
 
 static int round_up_pow2(int value) {
         unsigned long index;
@@ -47,10 +45,6 @@ static int round_up_pow2(int value) {
 HANDLE pid_to_mutex(void *mutex_arr, int pid) {
         assert(pid != 0); // if this fires something has gone very very wrong
         return MUTEX_ARRAY[pid - 1];
-}
-
-static char *reader_get_write_ptr(struct Reader *reader) {
-        return reader->scrollback_buffer1 + (reader->scrollback_write_offset & (reader->scrollback_buffer_size - 1));
 }
 
 static BOOL reader_read_data(struct Reader *reader) {
@@ -249,17 +243,6 @@ JNIEXPORT jlong JNICALL Java_WeaveNativeImpl_CreatePythonProcess(JNIEnv *env, jo
         return (long long)(pi.hProcess);
 }
 
-JNIEXPORT jobject JNICALL Java_WeaveNativeImpl_GetProcessesOutput(JNIEnv *env, jobject obj) {
-        uint64_t abs_read_offset = max(0, READER.scrollback_write_offset - READER.scrollback_buffer_size);
-        int read_size = READER.scrollback_write_offset - abs_read_offset;
-        int relative_read_offset = abs_read_offset & (READER.scrollback_buffer_size - 1); // mask off the high bits to get an offset
-        return (*env)->NewDirectByteBuffer(env, (READER.scrollback_buffer1 + relative_read_offset), read_size);
-}
-
-JNIEXPORT void JNICALL Java_WeaveNativeImpl_ClearProcessOutput(JNIEnv *env, jobject obj) {
-    READER.scrollback_write_offset = 0;
-}
-
 JNIEXPORT jboolean JNICALL Java_WeaveNativeImpl_isProcessAlive(JNIEnv *env, jobject obj, jlong pHandle) {
         DWORD exit_code;
         if (GetExitCodeProcess((HANDLE)pHandle, &exit_code)) {
@@ -284,9 +267,6 @@ EXPORT void python_mutex_release(void *mutex) {
 #endif
 
 #ifdef __linux__
-#define EXPORT __attribute__((visibility("default")))
-#define TRUE (1)
-#define FALSE (0)
 
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -304,36 +284,10 @@ EXPORT void python_mutex_release(void *mutex) {
 
 
 
-struct Reader {
-        int pipe_read_handle;
-        int pipe_write_handle;
-
-        char *scrollback_buffer1;
-        char *scrollback_buffer2;
-        int64_t scrollback_buffer_size;
-        int64_t scrollback_write_offset;
-
-        volatile uint32_t started;
-        volatile uint32_t working;
-};
-
-static int MAPPING_SIZE = sizeof(sem_t) * MAX_PROCESSES + MAX_PROCESSES;
-static void *MAPPED_FILE;
-static int FILE_HANDLE;
-static sem_t *MUTEX_ARRAY;
-
-static struct Reader READER;
-
-
-
 static int round_up_pow2(int value) {
         int index = __builtin_clz(value - 1);
         assert(index < 31);
         return 1U << (index + 1);
-}
-
-static char *reader_get_write_ptr(struct Reader *reader) {
-        return reader->scrollback_buffer1 + (reader->scrollback_write_offset & (reader->scrollback_buffer_size - 1));
 }
 
 static int reader_read_data(struct Reader *reader) {
@@ -349,7 +303,6 @@ static int reader_read_data(struct Reader *reader) {
 
         return bytes_read;
 }
-
 
 static void *reader_thread(void *args) {
         struct Reader *reader = (struct Reader *)args;
@@ -539,13 +492,6 @@ JNIEXPORT jlong JNICALL Java_WeaveNativeImpl_CreatePythonProcess(JNIEnv *env, jo
         } else {
                 return (long long)(pid);
         }
-}
-
-JNIEXPORT jobject JNICALL Java_WeaveNativeImpl_GetProcessesOutput(JNIEnv *env, jobject obj) {
-        uint64_t abs_read_offset = MAX(0, READER.scrollback_write_offset - READER.scrollback_buffer_size);
-        int read_size = READER.scrollback_write_offset - abs_read_offset;
-        int relative_read_offset = abs_read_offset & (READER.scrollback_buffer_size - 1); // mask off the high bits to get an offset
-        return (*env)->NewDirectByteBuffer(env, (READER.scrollback_buffer1 + relative_read_offset), read_size);
 }
 
 JNIEXPORT void JNICALL Java_WeaveNativeImpl_ClearProcessOutput(JNIEnv *env, jobject obj) {
