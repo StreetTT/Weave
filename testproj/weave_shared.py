@@ -26,7 +26,6 @@ def __WEAVE_PROCESS_START(pid):
         LIB = ctypes.CDLL("./lib/weave_native.dll")
     elif platformm == "linux":
         MUTEX_SIZE = 4
-        fd = os.getenv("WEAVE_SHARED_MAP")
         print(int(fd), flush=True)
         WEAVE_IPCMEM = mmap.mmap(int(fd), MUTEX_SIZE*_MAX_PROCESSES + _MAX_PROCESSES,
                                  flags=MAP_SHARED, prot=PROT_WRITE | PROT_READ, access=ACCESS_WRITE, trackfd=True)
@@ -36,7 +35,6 @@ def __WEAVE_PROCESS_START(pid):
 
     pid_signal_idx = pid
     signal_offset = MUTEX_SIZE * _MAX_PROCESSES
-    print("Have signal offset", flush=True)
 
     PROGRAM_SIGNAL_IDX = signal_offset + PID
 
@@ -46,7 +44,6 @@ def __WEAVE_PROCESS_START(pid):
     LIB.python_mutex_lock.restype = None
     LIB.python_mutex_release.restype = None
 
-    print(f"Attempting to lock mutex for {PID}", flush=True)
     LIB.python_mutex_lock(__WEAVE_PID_TO_MUTEX(PID))
     WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] = 1
     print(f"LOCKED MUTEX for {PID}", flush=True)
