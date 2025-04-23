@@ -14,8 +14,16 @@
 
 JNIEXPORT jobject JNICALL Java_WeaveNativeImpl_GetProcessesOutput(JNIEnv *env, jobject obj) {
         uint64_t abs_read_offset = max(0, READER.scrollback_write_offset - READER.scrollback_buffer_size);
-        int read_size = READER.scrollback_write_offset - abs_read_offset;
         int relative_read_offset = abs_read_offset & (READER.scrollback_buffer_size - 1); // mask off the high bits to get an offset
+
+        // go to the first full line
+        while (READER.scrollback_buffer1[relative_read_offset++] != '\n') {
+            ++abs_read_offset;
+        }
+
+        ++abs_read_offset; // skip the newline
+
+        int read_size = READER.scrollback_write_offset - abs_read_offset;
         return (*env)->NewDirectByteBuffer(env, (READER.scrollback_buffer1 + relative_read_offset), read_size);
 }
 
