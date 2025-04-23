@@ -4,66 +4,72 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="FrontendController">
-   <children>
-      <BorderPane layoutX="-1.0" minHeight="-Infinity" minWidth="-Infinity" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-         <top>
-            <!-- Menu bar for tools -->
-            <MenuBar BorderPane.alignment="CENTER">
-              <menus>
-                <Menu mnemonicParsing="false" text="File">
-                  <items>
-                      <MenuItem mnemonicParsing="false" text="Create new project" />
-                      <MenuItem mnemonicParsing="false" text="Add new python file" />
-                      <MenuItem mnemonicParsing="false" onAction="#saveProject" text="Save project" />
-                      <MenuItem mnemonicParsing="false" onAction="#saveProjectAs" text="Save project as" />
-                      <MenuItem mnemonicParsing="false" onAction="#openProject" text="Open project" />
-                      <Menu fx:id="fileMenu" mnemonicParsing="false" text="Recent projects">
-                          <items>
-                          </items>
-                      </Menu>
-                      <MenuItem mnemonicParsing="false" text="Export current project" />
-                  </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Edit">
-                  <items>
-                      <MenuItem mnemonicParsing="false" text="Find python file" />
-                      <MenuItem mnemonicParsing="false" text="Copy python file" />
-                      <MenuItem mnemonicParsing="false" text="Paste python file" />
-                      <MenuItem mnemonicParsing="false" text="Select all files" />
-                      <MenuItem mnemonicParsing="false" text="Move selected file to" />
-                  </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Run">
-                  <items>
-                      <MenuItem mnemonicParsing="false" onAction="#runProcesses" text="Run all" />
-                      <MenuItem mnemonicParsing="false" onAction="#runSelectedProcesses" text="Run Selected" />
-                  </items>
-                </Menu>
-              </menus>
-            </MenuBar>
-         </top>
-          <left>
-              <StackPane BorderPane.alignment="CENTER_LEFT">
-                  <children>
-                      <VBox fx:id="processContainer" alignment="TOP_LEFT" spacing="10.0" >
-                      </VBox>
+<?import javafx.geometry.Insets?>
+<AnchorPane prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="FrontendController">
+    <children>
+        <VBox spacing="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <MenuBar>
+                    <menus>
+                        <Menu mnemonicParsing="false" text="File">
+                            <items>
+                                <MenuItem mnemonicParsing="false" text="Create new project" />
+                                <MenuItem mnemonicParsing="false" text="Add new python process" onAction="#handleAddProcessRow"/>
+                                <MenuItem mnemonicParsing="false" onAction="#saveProject" text="Save project" />
+                                <MenuItem mnemonicParsing="false" onAction="#saveProjectAs" text="Save project as" />
+                                <MenuItem mnemonicParsing="false" onAction="#openProject" text="Open project" />
+                                <Menu fx:id="fileMenu" mnemonicParsing="false" text="Recent projects">
+                                    <items>
+                                    </items>
+                                </Menu>
+                                <MenuItem mnemonicParsing="false" text="Export current project" />
+                            </items>
+                        </Menu>
+                        <Menu mnemonicParsing="false" text="Edit">
+                            <items>
+                                <MenuItem mnemonicParsing="false" text="Find python file" />
+                                <MenuItem mnemonicParsing="false" text="Copy python file" />
+                                <MenuItem mnemonicParsing="false" text="Paste python file" />
+                                <MenuItem mnemonicParsing="false" text="Select all files" />
+                                <MenuItem mnemonicParsing="false" text="Move selected file to" />
+                            </items>
+                        </Menu>
+                        <Menu mnemonicParsing="false" text="Run">
+                            <items>
+                                <MenuItem mnemonicParsing="false" onAction="#runProcesses" text="Run all" />
+                                <MenuItem mnemonicParsing="false" onAction="#runSelectedProcesses" text="Run Selected" />
+                            </items>
+                        </Menu>
+                    </menus>
+                </MenuBar>
 
-                      <Pane fx:id="columnOverlayPane" mouseTransparent="true" />
-                  </children>
-              </StackPane>
-          </left>
-         <bottom>
-            <ScrollPane maxHeight="-Infinity" minHeight="-Infinity" prefHeight="219.0" prefWidth="600.0" BorderPane.alignment="CENTER">
-               <content>
-                  <Text fx:id="outputTerminal" cache="true" cacheHint="SPEED" strokeType="OUTSIDE" strokeWidth="0.0">
-                     <font>
+                <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
+                    <content>
+                        <AnchorPane>
+                            <children>
+                                <VBox fx:id="processContainer" spacing="10.0" AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                                    <padding>
+                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                    </padding>
+                                </VBox>
+                                <Pane fx:id="columnOverlayPane" mouseTransparent="true" AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                            </children>
+                        </AnchorPane>
+                    </content>
+                </ScrollPane>
+
+                <ScrollPane fitToHeight="false" minHeight="219.0" prefHeight="219.0" VBox.vgrow="NEVER"> <content>
+                    <Text fx:id="outputTerminal" cache="true" cacheHint="SPEED" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="980.0"> <font>
                         <Font size="15.0" />
-                     </font>
-                  </Text>
-               </content>
-            </ScrollPane>
-         </bottom>
-      </BorderPane>
-   </children>
+                    </font>
+                    </Text>
+                </content>
+                    <padding>
+                        <Insets left="5.0" right="5.0" />
+                    </padding>
+                </ScrollPane>
+
+            </children>
+        </VBox>
+    </children>
 </AnchorPane>

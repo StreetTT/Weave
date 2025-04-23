@@ -80,7 +80,15 @@ public class FrontendController {
         javafx.application.Platform.runLater(this::updateColoumLines);
     }
 
-    // Add this method to your FrontendController class
+
+    @FXML
+    public void handleAddProcessRow(){
+        //adds a row, any other functionatilty can be added here for adding a row
+        addRow();
+    }
+
+
+
     private void showStartupDialog() {
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Welcome to Weave");
