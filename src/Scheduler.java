@@ -89,10 +89,32 @@ public class Scheduler {
 
         String dirpath = this.projectDir + "/" + folder;
 
+
         try {
             Files.createDirectories(Paths.get(dirpath)); // create one if it doens't already exist
-        } catch (IOException e) {
+        }  catch (IOException e) {
             System.err.println("Creating process directory failed");
+            e.printStackTrace();
+            return false;
+        }
+
+        String libpath = dirpath + "/lib";
+        try {
+        Files.createDirectories(Paths.get(libpath)); // create one if it doens't already exist
+        } catch (IOException e) {
+            System.err.println("Error creating lib directory");
+            e.printStackTrace();
+            return false;
+        }
+
+        try {
+            Files.copy(Paths.get("./weave_shared.py"), Paths.get(dirpath + "/weave_shared.py"), StandardCopyOption.COPY_ATTRIBUTES);
+            Files.copy(Paths.get("./lib/weave_native.dll"), Paths.get(libpath + "/weave_native.dll"), StandardCopyOption.COPY_ATTRIBUTES);
+            Files.copy(Paths.get("./lib/weave_native.so"), Paths.get(libpath + "/weave_native.so"), StandardCopyOption.COPY_ATTRIBUTES);
+        } catch (FileAlreadyExistsException existsException) {
+                // ignore because we dont care
+        } catch (IOException e) {
+            System.err.println("Failed to copy over weave runtime files");
             e.printStackTrace();
             return false;
         }
@@ -154,6 +176,7 @@ public class Scheduler {
             for (int blockIdx = 0; blockIdx < process.largestIndex; ++blockIdx) {
                 fullFileString.append(getBlockFuctionStringFromIdx(blockIdx) + "\n");
             }
+
             fullFileString.append(getBlockFuctionStringFromIdx(process.largestIndex) + "\n");
             try {
                 Files.write(path, fullFileString.toString().getBytes(),

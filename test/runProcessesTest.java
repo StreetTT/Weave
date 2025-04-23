@@ -111,6 +111,5 @@ public class runProcessesTest {
         WeaveNativeFactory.get().DeInit();
 
        assertEquals(true, true);
-
     }
 }

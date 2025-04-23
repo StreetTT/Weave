@@ -91,10 +91,11 @@ public class PopupEditor {
             this.codeArea.getStyleClass().add("code-area");
             this.codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
             this.codeArea.replaceText(0, 0, this.block.fileContents.toString());
-            
-            // Add syntax highlighting
+
+            //FIXME(Ray): Syntax highlighting doesn't immediately kick in, it requires you to update the CodeArea for some reason
+
             codeArea.multiPlainChanges()
-                   .successionEnds(Duration.ofMillis(500))
+                   .successionEnds(Duration.ofMillis(30)) // 30ms delay
                    .subscribe(ignore -> codeArea.setStyleSpans(0, computeHighlighting(codeArea.getText())));
 
             String cssPath = "/python-keywords.css";

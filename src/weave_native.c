@@ -1,35 +1,47 @@
+
+#ifdef __linux__
+#define _GNU_SOURCE
+#endif
+
 #include <jni.h>
 #include <stdint.h>
-#include <Windows.h>
 #include <string.h>
 #include <assert.h>
 
 #include "WeaveNativeImpl.h"
-#define MAX_PROCESSES (256)
-#define EXPORT __declspec(dllexport)
-#define ARRSIZE(arr) sizeof(arr)/sizeof(arr[0])
-#define READER_BUFFER_SIZE (4096 * 16) // mulitple of 4KB page
+#include "weave_native.h"
 
+
+JNIEXPORT jobject JNICALL Java_WeaveNativeImpl_GetProcessesOutput(JNIEnv *env, jobject obj) {
+        uint64_t abs_read_offset = max(0, READER.scrollback_write_offset - READER.scrollback_buffer_size);
+        int relative_read_offset = abs_read_offset & (READER.scrollback_buffer_size - 1); // mask off the high bits to get an offset
+
+        // go to the first full line
+        while (READER.scrollback_buffer1[relative_read_offset++] != '\n') {
+            ++abs_read_offset;
+        }
+
+        ++abs_read_offset; // skip the newline
+
+        int read_size = READER.scrollback_write_offset - abs_read_offset;
+        return (*env)->NewDirectByteBuffer(env, (READER.scrollback_buffer1 + relative_read_offset), read_size);
+}
+
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_ClearProcessOutput(JNIEnv *env, jobject obj) {
+    READER.scrollback_write_offset = 0;
+}
+
+static char *reader_get_write_ptr(struct Reader *reader) {
+        return reader->scrollback_buffer1 + (reader->scrollback_write_offset & (reader->scrollback_buffer_size - 1));
+}
+
+
+#ifdef _WIN32
+#define EXPORT __declspec(dllexport)
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 #pragma comment (lib, "onecore")
 
-
-struct Reader {
-        HANDLE pipe_write_handle;
-        HANDLE pipe_read_handle;
-
-        char *scrollback_buffer1;
-        char *scrollback_buffer2;
-        int64_t scrollback_buffer_size;
-        int64_t scrollback_write_offset;
-
-        volatile BOOL started;
-        volatile BOOL working;
-};
-
-static void *MAPPED_FILE;
-static HANDLE FILE_HANDLE;
-static HANDLE *MUTEX_ARRAY;
-static struct Reader READER;
 
 static int round_up_pow2(int value) {
         unsigned long index;
@@ -38,8 +50,9 @@ static int round_up_pow2(int value) {
         return 1U << (index + 1);
 }
 
-static char *reader_get_write_ptr(struct Reader *reader) {
-        return reader->scrollback_buffer1 + (reader->scrollback_write_offset & (reader->scrollback_buffer_size - 1));
+HANDLE pid_to_mutex(void *mutex_arr, int pid) {
+        assert(pid != 0); // if this fires something has gone very very wrong
+        return MUTEX_ARRAY[pid - 1];
 }
 
 static BOOL reader_read_data(struct Reader *reader) {
@@ -83,6 +96,8 @@ static DWORD CALLBACK reader_thread(LPVOID args) {
                         WaitOnAddress(&reader->started, &active, sizeof(reader->started), INFINITE);
                 }
         }
+
+        return 0;
 }
 
 JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReaderThreadStart(JNIEnv *env, jobject obj) {
@@ -130,10 +145,6 @@ JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReaderThreadStop(JNIEnv *env, jobjec
         CloseHandle(READER.pipe_read_handle);
 }
 
-HANDLE pid_to_mutex(void *mutex_arr, int pid) {
-        assert(pid != 0); // if this fires something has gone very very wrong 
-        return MUTEX_ARRAY[pid - 1];
-}
 
 JNIEXPORT void JNICALL Java_WeaveNativeImpl_Init(JNIEnv *env, jobject obj) {
         // Setup shared memory buffers
@@ -240,17 +251,6 @@ JNIEXPORT jlong JNICALL Java_WeaveNativeImpl_CreatePythonProcess(JNIEnv *env, jo
         return (long long)(pi.hProcess);
 }
 
-JNIEXPORT jobject JNICALL Java_WeaveNativeImpl_GetProcessesOutput(JNIEnv *env, jobject obj) {
-        uint64_t abs_read_offset = max(0, READER.scrollback_write_offset - READER.scrollback_buffer_size);
-        int read_size = READER.scrollback_write_offset - abs_read_offset;
-        int relative_read_offset = abs_read_offset & (READER.scrollback_buffer_size - 1); // mask off the high bits to get an offset
-        return (*env)->NewDirectByteBuffer(env, (READER.scrollback_buffer1 + relative_read_offset), read_size);
-}
-
-JNIEXPORT void JNICALL Java_WeaveNativeImpl_ClearProcessOutput(JNIEnv *env, jobject obj) {
-    READER.scrollback_write_offset = 0;
-}
-
 JNIEXPORT jboolean JNICALL Java_WeaveNativeImpl_isProcessAlive(JNIEnv *env, jobject obj, jlong pHandle) {
         DWORD exit_code;
         if (GetExitCodeProcess((HANDLE)pHandle, &exit_code)) {
@@ -271,3 +271,260 @@ EXPORT void python_mutex_lock(void *mutex) {
 EXPORT void python_mutex_release(void *mutex) {
         ReleaseSemaphore((HANDLE)mutex, 1, 0);
 }
+
+#endif
+
+#ifdef __linux__
+
+#include <sys/syscall.h>
+#include <unistd.h>
+#include <semaphore.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <pthread.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/param.h>
+#include <signal.h>
+#include <linux/futex.h>
+#include <stdatomic.h>
+
+
+
+static int round_up_pow2(int value) {
+        int index = __builtin_clz(value - 1);
+        assert(index < 31);
+        return 1U << (index + 1);
+}
+
+static int reader_read_data(struct Reader *reader) {
+        int relative_write_offset = reader->scrollback_write_offset & (reader->scrollback_buffer_size - 1);
+
+        int bytes_read = read(reader->pipe_read_handle, reader_get_write_ptr(reader), reader->scrollback_buffer_size);
+
+        if (bytes_read != -1) {
+            reader->scrollback_write_offset += bytes_read;
+        } else {
+            bytes_read = 0;
+        }
+
+        return bytes_read;
+}
+
+static void *reader_thread(void *args) {
+        struct Reader *reader = (struct Reader *)args;
+        for (;;) {
+                if (reader->started) {
+                        atomic_exchange(&reader->working, TRUE);
+                        syscall(SYS_futex, &reader->working, FUTEX_WAKE_PRIVATE, 1, NULL, NULL, 0);
+                        int bytes_available;
+                        if (reader_read_data(reader))  {
+#if 0
+                            uint64_t abs_read_offset = MAX(0, reader->scrollback_write_offset - reader->scrollback_buffer_size);
+                            int read_size = reader->scrollback_write_offset - abs_read_offset;
+                            int relative_read_offset = abs_read_offset & (reader->scrollback_buffer_size - 1); // mask off the high bits to get an offset
+                            fprintf(stderr, "%.*s\n", read_size, reader->scrollback_buffer1 + relative_read_offset);
+                            fflush(stderr);
+#endif
+                        }
+                } else {
+                        atomic_exchange(&reader->working, FALSE);
+                        syscall(SYS_futex, &reader->working, FUTEX_WAKE_PRIVATE, 1, NULL, NULL, 0);
+                        syscall(SYS_futex, &reader->started, FUTEX_WAIT_PRIVATE, 0, NULL, NULL, 0);
+                }
+        }
+
+        return 0;
+}
+
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReaderThreadStart(JNIEnv *env, jobject obj) {
+        if (pipe(&READER.pipe_read_handle) == -1) {
+                fprintf(stderr, "Reader failed to create pipe\n");
+                exit(1);
+        }
+
+        fcntl(READER.pipe_read_handle, F_SETFL, fcntl(READER.pipe_read_handle, F_GETFL) | O_NONBLOCK); // set non blocking
+
+        assert(READER.working == FALSE);
+        atomic_exchange(&READER.started, TRUE); // interlocked here because cba using memory barriers
+        syscall(SYS_futex, &READER.started, FUTEX_WAKE_PRIVATE, 1, NULL, NULL, 0);
+
+        // wait until the reader thread has actually started work
+        while (READER.working == FALSE) {
+                syscall(SYS_futex, &READER.working, FUTEX_WAIT_PRIVATE, FALSE, NULL, NULL, 0);
+        }
+}
+
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReaderThreadStop(JNIEnv *env, jobject obj) {
+        assert(READER.started == TRUE);
+        atomic_exchange(&READER.started, FALSE);
+        fprintf(stderr, "ATTEMPTING FINISHED READING\n");
+        while (READER.working == TRUE) {
+                syscall(SYS_futex, &READER.working, FUTEX_WAIT_PRIVATE, TRUE, NULL, NULL, 0);
+        }
+
+        close(READER.pipe_write_handle); // close our write handle
+
+        fcntl(READER.pipe_read_handle, F_SETFL, fcntl(READER.pipe_read_handle, F_GETFL) & ~O_NONBLOCK); // set blocking again just incase
+        int ok;
+        fprintf(stderr, "ATTEMPTING FINISHED READING\n");
+        do {
+                ok = reader_read_data(&READER);
+        } while (ok);
+        fprintf(stderr, "FINISHED READING\n");
+
+        const char end_marker[] = ">>>>>>>>>>>>\n";
+        for (const char *c = end_marker; *c != '\0'; ++c) {
+                *reader_get_write_ptr(&READER) = *c;
+                READER.scrollback_write_offset++;
+        }
+
+        close(READER.pipe_read_handle); // close the pipe up
+}
+
+sem_t *pid_to_mutex(void *mutex_arr, int pid) {
+        fprintf(stderr, "before assert");
+        assert(pid != 0); // if this fires something has gone very very wrong
+        fprintf(stderr, "after assert\n");
+        fprintf(stderr, "%d", pid);
+        sem_t *result = MUTEX_ARRAY + (pid - 1);
+        fprintf(stderr, "got result\n");
+
+        return result;
+}
+
+
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_Init(JNIEnv *env, jobject obj) {
+        // Setup shared memory buffers
+        {
+                FILE_HANDLE = memfd_create("shared_map", 0);
+
+                if(ftruncate(FILE_HANDLE, MAPPING_SIZE) == -1) {
+                        fprintf(stderr, "Failed to truncate memory region\n");
+                        exit(1);
+                }
+
+                MAPPED_FILE = mmap(0, MAPPING_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, FILE_HANDLE, 0);
+
+                if (FILE_HANDLE == -1 || MAPPED_FILE == MAP_FAILED) {
+                        fprintf(stderr, "Failed to create shared mem mapping\n");
+                        exit(1);
+                }
+
+                MUTEX_ARRAY = (sem_t *)MAPPED_FILE;
+                fprintf(stderr, "MUTEX_ARRAY: %p\n", MUTEX_ARRAY);
+                fprintf(stderr, "sem_t size: %lu\n", sizeof(sem_t));
+                for (int i = 0; i < MAX_PROCESSES; ++i) {
+                        sem_init(MUTEX_ARRAY + i, 1, 1);
+                }
+        }
+
+        //setup stdout pipe & scrollback buffer for output terminal
+        {
+                // allocate physical mapping
+                READER.scrollback_buffer_size = round_up_pow2(READER_BUFFER_SIZE);
+                int scrollback_fd = memfd_create("ring_buffer", MFD_CLOEXEC);
+                if (scrollback_fd == -1)  {
+                        fprintf(stderr, "Failed to get scrollback mapping");
+                }
+
+                if (ftruncate(scrollback_fd, READER.scrollback_buffer_size) == -1) {
+                        fprintf(stderr, "Failed to truncate ring buffer\n");
+                }
+
+                //allocate two virtual pages to the same mapping for ring buffer
+                READER.scrollback_buffer1 = (char *)mmap(0, READER.scrollback_buffer_size,
+                                                         PROT_READ | PROT_WRITE, MAP_SHARED, scrollback_fd, 0);
+                READER.scrollback_buffer2 = (char *)mmap(READER.scrollback_buffer1 + READER.scrollback_buffer_size,
+                                                         READER.scrollback_buffer_size, PROT_READ | PROT_WRITE,
+                                                         MAP_SHARED | MAP_FIXED, scrollback_fd, 0);
+
+                assert(READER.scrollback_buffer1 != MAP_FAILED && READER.scrollback_buffer2 != MAP_FAILED);
+
+                pthread_attr_t attr = {};
+                pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+                pthread_t thread;
+                pthread_create(&thread, &attr, reader_thread, &READER);
+                close(scrollback_fd);
+        }
+}
+
+JNIEXPORT jobject JNICALL Java_WeaveNativeImpl_GetSignalArray(JNIEnv *env, jobject obj) {
+        return (*env)->NewDirectByteBuffer(env, (char *)(MAPPED_FILE) + (sizeof(sem_t) * MAX_PROCESSES), MAX_PROCESSES);
+}
+
+
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_DeInit(JNIEnv *env, jobject obj) {
+        munmap(MAPPED_FILE, MAPPING_SIZE);
+        close(FILE_HANDLE);
+        munmap(READER.scrollback_buffer1, READER.scrollback_buffer_size);
+        munmap(READER.scrollback_buffer2, READER.scrollback_buffer_size);
+}
+
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_WaitForProcess(JNIEnv *env, jobject obj, jint pid) {
+        fprintf(stderr, "Waitig for sem\n");
+        if (sem_wait(pid_to_mutex(MUTEX_ARRAY, pid)) == -1) {
+            fprintf(stderr, "failed waiting for sem\n");
+        }
+}
+
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReleaseProcess(JNIEnv *env, jobject obj, jint pid) {
+        if (sem_post(pid_to_mutex(MUTEX_ARRAY, pid)) == -1) {
+                fprintf(stderr, "failed to post\n");
+        }
+}
+
+JNIEXPORT jlong JNICALL Java_WeaveNativeImpl_CreatePythonProcess(JNIEnv *env, jobject obj, jstring filename) {
+        const char *c_filename = (*env)->GetStringUTFChars(env, filename, 0);
+        fprintf(stderr, "%s\n", c_filename);
+
+        pid_t pid = fork();
+        if (pid == -1)  {
+                fprintf(stderr, "Failed to create python process\n");
+                return 0;
+        }
+
+        if (pid == 0) {
+            char fd_string[10];
+            snprintf(fd_string, sizeof(fd_string), "%d", FILE_HANDLE);
+            fprintf(stderr, "fdstring: %s\n", fd_string);
+
+            //Redirect stdout
+            close(READER.pipe_read_handle);
+            dup2(READER.pipe_write_handle, STDOUT_FILENO);
+            close(READER.pipe_write_handle);
+
+            setenv("WEAVE_SHARED_MAP", fd_string, 1);
+            execlp("python3", "python3", c_filename, NULL);
+        } else {
+                return (long long)(pid);
+        }
+}
+
+JNIEXPORT void JNICALL Java_WeaveNativeImpl_ClearProcessOutput(JNIEnv *env, jobject obj) {
+        READER.scrollback_write_offset = 0;
+}
+
+JNIEXPORT jboolean JNICALL Java_WeaveNativeImpl_isProcessAlive(JNIEnv *env, jobject obj, jlong pHandle) {
+        int status;
+        if (waitpid((pid_t)pHandle, &status, WNOHANG) == 0) {
+                return JNI_TRUE;
+        } else if(WIFEXITED(status) || WIFSTOPPED(status)) {
+                return JNI_FALSE;
+        }
+
+        return JNI_TRUE;
+}
+
+EXPORT void python_mutex_lock(void *mutex) {
+        fprintf(stderr, "converting mut\n");
+        fprintf(stderr, "mutex: %p\n", mutex);
+        sem_wait((sem_t *)mutex);
+}
+
+EXPORT void python_mutex_release(void *mutex) {
+        sem_post((sem_t *)mutex);
+}
+
+#endif
