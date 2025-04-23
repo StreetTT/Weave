@@ -1,4 +1,5 @@
 import com.sun.javafx.collections.ImmutableObservableList;
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
@@ -10,8 +11,10 @@ import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
@@ -22,11 +25,26 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.prefs.Preferences;
+
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Line;
+import javafx.scene.paint.Color;
+import javafx.collections.ListChangeListener;
+import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
+import javafx.scene.Node;
+
+import javafx.stage.Modality;
+import java.util.Optional;
 
 public class FrontendController {
     @FXML
     public VBox processContainer;
+    @FXML
+    public Pane columnOverlayPane;
     @FXML
     public Region spacer;
     @FXML
@@ -41,11 +59,94 @@ public class FrontendController {
 
 
     public void initialize() {
-        addRow();
-        addRow();
+        showStartupDialog();
         loadRecentProjects();
         populateRecentProjectsMenu();
 
+
+        //LISTENERS
+        processContainer.getChildren().addListener((ListChangeListener<Node>) c -> {
+            while (c.next()) {
+
+            }
+            // lines update when list changes
+            updateColoumLines();
+        });
+
+        //listens for height changess
+        processContainer.heightProperty().addListener((obs, oldH, newH) -> updateColoumLines());
+
+
+        javafx.application.Platform.runLater(this::updateColoumLines);
+    }
+
+
+    @FXML
+    public void handleAddProcessRow(){
+        //adds a row, any other functionatilty can be added here for adding a row
+        addRow();
+    }
+
+
+
+    private void showStartupDialog() {
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Welcome to Weave");
+        dialog.setHeaderText("Choose an option to continue");
+        
+        // Make dialog modal (blocks input to other windows)
+        dialog.initModality(Modality.APPLICATION_MODAL);
+
+        // Create buttons
+        ButtonType newProjectBtn = new ButtonType("New Project", ButtonBar.ButtonData.OK_DONE);
+        ButtonType openProjectBtn = new ButtonType("Open Project", ButtonBar.ButtonData.OTHER);
+        
+        // Create recent projects list
+        ListView<String> recentList = new ListView<>();
+        recentList.getItems().addAll(recentProjects);
+        recentList.setPrefHeight(100);
+        
+        VBox content = new VBox(10);
+        content.getChildren().addAll(
+            new Label("Recent Projects:"),
+            recentList
+        );
+        
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().addAll(newProjectBtn, openProjectBtn);
+
+        // Handle button clicks
+        dialog.setResultConverter(buttonType -> {
+            if (buttonType == newProjectBtn) {
+                return "new";
+            } else if (buttonType == openProjectBtn) {
+                return "open";
+            }
+            return null;
+        });
+
+        // Handle recent project selection
+        recentList.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {  // Double click
+                String selectedPath = recentList.getSelectionModel().getSelectedItem();
+                if (selectedPath != null) {
+                    dialog.close();
+                    openProjectFromPath(selectedPath);
+                }
+            }
+        });
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(action -> {
+            if (action.equals("new")) {
+                // Handle new project
+                saveProjectAs();
+                addRow();
+                addRow();
+            } else if (action.equals("open")) {
+                openProject();
+            }
+        });
     }
 
     public ProcessRow addRow() {
@@ -58,6 +159,8 @@ public class FrontendController {
         newRow.deleteButton.setOnAction(e -> {
                     processContainer.getChildren().remove(newRow);
                     Frontend.processes.remove(process);
+                    //update lines
+                    updateColoumLines();
         });
         newRow.deleteButton.setTooltip(new Tooltip("Delete this process"));
         newRow.selectButton.setOnAction(e -> {
@@ -72,9 +175,99 @@ public class FrontendController {
         });
         newRow.selectButton.setTooltip(new Tooltip("Select this process"));
         processContainer.getChildren().add(newRow);
+        updateColoumLines();
         System.out.println("ADDED PROCESS " + processContainer.getChildren().size());
 
         return newRow;
+    }
+
+
+
+    //implementation of visualisation lines
+    private void updateColoumLines(){
+        //clear all lines first
+        columnOverlayPane.getChildren().clear();
+
+        //chech if there are any process rows we need to draw over
+        if(processContainer.getChildren().isEmpty()){
+            //no need for lines
+            return;
+        }
+
+        //determine vertical length needed
+
+        //gets the first process block
+        Node firstChild = processContainer.getChildren().get(0);
+
+        //work out the top of the first process to position the line
+        Point2D firstRowTopLeftInScene = firstChild.localToScene(0, 0);
+        if (firstRowTopLeftInScene == null || columnOverlayPane.getScene() == null) {
+            return;
+        }
+        Point2D firstRowTopLeftInOverlay = columnOverlayPane.sceneToLocal(firstRowTopLeftInScene);
+
+   
+
+        // Start the line slightly below the absolute top of the first row
+        double startY = firstRowTopLeftInOverlay.getY() + 10.5;
+
+
+        Bounds containerBoundsInParent = processContainer.getBoundsInParent();
+        double endY = containerBoundsInParent.getMaxY() + 5;
+
+        //make sure its actually a valid height
+        if(startY >= endY){
+            return;
+        }
+
+        //now determine distance of horizontal nature
+        ProcessRow firstRow = (ProcessRow) processContainer.getChildren().get(0);
+
+        GridPaneRow gridPane = firstRow.getGridPaneRow();
+
+        //check we actually have a gridpane
+        if (gridPane == null){
+            return;
+        }
+
+        //calculate x pos of overlay plane
+        Bounds gridBoundsInScene = gridPane.localToScene(gridPane.getBoundsInLocal());
+        if (gridBoundsInScene == null || columnOverlayPane.getScene() == null) {
+            // Scene might not be ready yet during initial layout so we add it to the later running stuff
+            Platform.runLater(this::updateColoumLines);
+            return;
+        }
+        Point2D gridTopLeftInOverlay = columnOverlayPane.sceneToLocal(gridBoundsInScene.getMinX(), gridBoundsInScene.getMinY());
+
+        //if a conversion failed
+        if (gridTopLeftInOverlay == null) {
+            return;
+        }
+        double gridPaneStartXInOverlay = gridTopLeftInOverlay.getX();
+
+        //time to draw lines
+
+        final int cols = GridPaneRow.COLS;
+        final double cellWidth = GridPaneRow.CELL_SIZE_WITH_PADDING;
+
+        //depending on size draw lines
+        for (int i = 1; i < cols; i++) {
+
+
+            final double PADDING_OFFSET = (GridPaneRow.CELL_SIZE_WITH_PADDING - PBlockRect.BLOCK_WIDTH) / 2.0;
+
+
+            double lineX = gridPaneStartXInOverlay + (i * cellWidth) - PADDING_OFFSET;
+
+            //DOTTED LINE UI
+            Line line = new Line(lineX, startY, lineX, endY);
+            line.setStroke(Color.GRAY);
+            line.setStrokeWidth(1);
+            line.getStrokeDashArray().addAll(5.0, 5.0);
+            columnOverlayPane.getChildren().add(line);
+        }
+
+
     }
 
     public void updateOutputTerminal() {
