@@ -92,7 +92,7 @@ public class Scheduler {
 
         try {
             Files.createDirectories(Paths.get(dirpath)); // create one if it doens't already exist
-        } catch (IOException e) {
+        }  catch (IOException e) {
             System.err.println("Creating process directory failed");
             e.printStackTrace();
             return false;
@@ -111,6 +111,8 @@ public class Scheduler {
             Files.copy(Paths.get("./weave_shared.py"), Paths.get(dirpath + "/weave_shared.py"), StandardCopyOption.COPY_ATTRIBUTES);
             Files.copy(Paths.get("./lib/weave_native.dll"), Paths.get(libpath + "/weave_native.dll"), StandardCopyOption.COPY_ATTRIBUTES);
             Files.copy(Paths.get("./lib/weave_native.so"), Paths.get(libpath + "/weave_native.so"), StandardCopyOption.COPY_ATTRIBUTES);
+        } catch (FileAlreadyExistsException existsException) {
+                // ignore because we dont care
         } catch (IOException e) {
             System.err.println("Failed to copy over weave runtime files");
             e.printStackTrace();
