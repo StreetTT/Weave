@@ -141,6 +141,15 @@ public class FrontendController {
         result.ifPresent(action -> {
             if (action.equals("new")) {
                 // Handle new project
+                Optional<String> name;
+                do {
+                    TextInputDialog projectNameDialog = new TextInputDialog();
+                    projectNameDialog.setTitle("New Project");
+                    projectNameDialog.setHeaderText("Choose A Project Name");
+                    name = projectNameDialog.showAndWait();
+                } while (name.isEmpty());
+
+                Scheduler.Scheduler().projectName = name.get();
                 saveProjectAs();
                 addRow();
                 addRow();
