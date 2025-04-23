@@ -79,6 +79,8 @@ public class GridPaneRow extends GridPane {
         }
 
         for (int i = oldCols; i < col + 1; ++i) {
+            ColumnConstraints column = new ColumnConstraints(CELL_SIZE_WITH_PADDING);  // column size includes padding in between
+            this.getColumnConstraints().add(column);
             createEmptyBlockAtCol(i);
         }
 
