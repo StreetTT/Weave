@@ -189,73 +189,88 @@ public class FrontendController {
 
     //implementation of visualisation lines
     private void updateColoumLines(){
-        //clear all lines first
+        //all lines first
         columnOverlayPane.getChildren().clear();
 
-        //chech if there are any process rows we need to draw over
-        if(processContainer.getChildren().isEmpty()){
-            //no need for lines
+        if (processContainer.getChildren().isEmpty()) {
             return;
         }
 
-        //determine vertical length needed
+        // fins max number of coloums needed from longest proces row
+        int maxCols = 0;
+        GridPaneRow firstGridPaneForPositioning = null;
 
-        //gets the first process block
+        for (Node node : processContainer.getChildren()) {
+            // Ensure the node is a ProcessRow before casting
+            if (node instanceof ProcessRow) {
+                ProcessRow currentRow = (ProcessRow) node;
+                GridPaneRow currentGridPane = currentRow.getGridPaneRow();
+
+                if (currentGridPane != null) {
+                    if (firstGridPaneForPositioning == null) {
+                        // Capture the first valid grid pane we find
+                        firstGridPaneForPositioning = currentGridPane;
+                    }
+
+                    maxCols = Math.max(maxCols, currentGridPane.getColumnConstraints().size());
+                }
+            }
+        }
+
+
+        if (firstGridPaneForPositioning == null || maxCols == 0) {
+            Platform.runLater(this::updateColoumLines); // Defer execution
+            return;
+        }
+
+
+
+
         Node firstChild = processContainer.getChildren().get(0);
 
-        //work out the top of the first process to position the line
         Point2D firstRowTopLeftInScene = firstChild.localToScene(0, 0);
-        if (firstRowTopLeftInScene == null || columnOverlayPane.getScene() == null) {
+
+        if (firstRowTopLeftInScene == null || columnOverlayPane.getScene() == null || columnOverlayPane.getScene().getWindow() == null) {
+            Platform.runLater(this::updateColoumLines);
             return;
         }
         Point2D firstRowTopLeftInOverlay = columnOverlayPane.sceneToLocal(firstRowTopLeftInScene);
+        if(firstRowTopLeftInOverlay == null) {
+            Platform.runLater(this::updateColoumLines);
+            return;
+        }
 
-   
 
-        // Start the line slightly below the absolute top of the first row
         double startY = firstRowTopLeftInOverlay.getY() + 10.5;
 
 
         Bounds containerBoundsInParent = processContainer.getBoundsInParent();
         double endY = containerBoundsInParent.getMaxY() + 5;
 
-        //make sure its actually a valid height
-        if(startY >= endY){
+
+        if (startY >= endY) {
             return;
         }
 
-        //now determine distance of horizontal nature
-        ProcessRow firstRow = (ProcessRow) processContainer.getChildren().get(0);
 
-        GridPaneRow gridPane = firstRow.getGridPaneRow();
-
-        //check we actually have a gridpane
-        if (gridPane == null){
-            Platform.runLater(this::updateColoumLines);
-            return;
-        }
-
-        //calculate x pos of overlay plane
-        Bounds gridBoundsInScene = gridPane.localToScene(gridPane.getBoundsInLocal());
-        if (gridBoundsInScene == null || columnOverlayPane.getScene() == null) {
-            // Scene might not be ready yet during initial layout so we add it to the later running stuff
+        Bounds gridBoundsInScene = firstGridPaneForPositioning.localToScene(firstGridPaneForPositioning.getBoundsInLocal());
+        if (gridBoundsInScene == null) {
             Platform.runLater(this::updateColoumLines);
             return;
         }
         Point2D gridTopLeftInOverlay = columnOverlayPane.sceneToLocal(gridBoundsInScene.getMinX(), gridBoundsInScene.getMinY());
 
-        //if a conversion failed
         if (gridTopLeftInOverlay == null) {
             return;
         }
         double gridPaneStartXInOverlay = gridTopLeftInOverlay.getX();
 
-        //time to draw lines
 
-        int cols = gridPane.getColumnCount(); // Use the dynamic column count
         final double cellWidth = GridPaneRow.CELL_SIZE_WITH_PADDING;
 
-        for (int i = 1; i < cols; i++) {
+
+        for (int i = 1; i < maxCols; i++) { 
+
             final double PADDING_OFFSET = (GridPaneRow.CELL_SIZE_WITH_PADDING - PBlockRect.BLOCK_WIDTH) / 2.0;
             double lineX = gridPaneStartXInOverlay + (i * cellWidth) - PADDING_OFFSET;
 
