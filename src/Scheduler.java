@@ -215,7 +215,7 @@ public class Scheduler {
         wn.ReaderThreadStart();
         for (int i = 0; i < processes.size(); ++i) {
             // don't need to use default file seperator here, the native C code will do the conversion for us
-            String pythonFile = this.projectDir + "/" + outputDir + "/" + this.getFilenameFromIdx(i);
+            String pythonFile = "\"" + this.projectDir + "/" + outputDir + "/" + this.getFilenameFromIdx(i) + "\"";
             wn.CreatePythonProcess(pids[i], pythonFile);
         }
 
