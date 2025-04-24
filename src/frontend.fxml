@@ -6,7 +6,7 @@
 <?import com.jfoenix.controls.*?>
 
 <?import javafx.geometry.Insets?>
-<AnchorPane prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="FrontendController">
+<AnchorPane styleClass="main-anchor-pane" prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="FrontendController">
     <children>
         <VBox spacing="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <children>
@@ -44,7 +44,7 @@
                     </menus>
                 </MenuBar>
 
-                <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #f0f0f0;">
+                <HBox styleClass="tool-bar" alignment="CENTER_LEFT" spacing="20.0">
                     <padding>
                         <Insets top="4.0" right="10.0" bottom="4.0" left="10.0" />
                     </padding>
@@ -55,32 +55,24 @@
                             </padding>
                             <children>
                                 <JFXCheckBox fx:id="selectAllCheckBox" text="" />
-                                <Label text="Select All" style="-fx-font-size: 13px;"/>
+                                <Label text="Select All" styleClass="tool-bar-label"/>
                             </children>
                             <HBox.margin>
                                 <Insets left="20.0" />
                             </HBox.margin>
                         </VBox>
 
-                        <JFXButton fx:id="addProcessButton" onAction="#handleAddProcessRow" buttonType="RAISED" contentDisplay="LEFT" prefHeight="40.0" prefWidth="60.0" style="-fx-background-color: #64b5f6; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 4 8 4 8; -fx-font-size: 13px;">
-                            <graphic>
-                                <Text text="+" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: white;"/>
-                            </graphic>
+                        <JFXButton fx:id="addProcessButton" onAction="#handleAddProcessRow" buttonType="RAISED" contentDisplay="TEXT_ONLY" prefHeight="40.0" prefWidth="60.0" styleClass="tool-bar-button" text="+">
                             <HBox.margin>
                                 <Insets left="30.0" /> </HBox.margin>
                         </JFXButton>
 
                         <Region HBox.hgrow="ALWAYS" />
 
-                        <JFXButton fx:id="runAllTopButton" onAction="#runSelectedProcesses"  buttonType="RAISED" contentDisplay="TOP" prefHeight="40.0" prefWidth="60.0" style="-fx-background-color: #81c784; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 4 8 4 8; -fx-font-size: 13px;">
-                            <graphic>
-                                <Text text="▶" style="-fx-font-size: 13px; -fx-fill: white;"/>
-                            </graphic>
-
+                        <JFXButton fx:id="runAllTopButton" onAction="#runSelectedProcesses"  buttonType="RAISED" contentDisplay="TEXT_ONLY" prefHeight="40.0" prefWidth="60.0" styleClass="tool-bar-button" text="▶">
                             <HBox.margin>
                                 <Insets right ="15.0"/>
                             </HBox.margin>
-
                         </JFXButton>
                     </children>
                 </HBox>
@@ -109,12 +101,7 @@
                         <Insets top="10.0" right="10.0" bottom="10.0" left="10.0" />
                     </padding>
                     <children>
-                        <TextArea fx:id="outputTextArea" editable="false" wrapText="true" styleClass="output-terminal">
-                            <font>
-                                <Font name="Consolas" size="13.0" />
-                            </font>
-                            >Output will appear here...
-                        </TextArea>
+                        <TextArea fx:id="outputTextArea" editable="false" wrapText="true" styleClass="output-terminal" text=">Output will appear here..."/>
                     </children>
                 </StackPane>
 

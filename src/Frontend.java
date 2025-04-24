@@ -44,7 +44,10 @@ public class Frontend extends Application {
 
         //css for frontend
         scene.getStylesheets().add(getClass().getResource("python-keywords.css").toExternalForm());
+
+
         primaryStage.setScene(scene);
+
 
         // Window resizing listeners
         primaryStage.widthProperty().addListener((obs, oldVal, newVal) ->

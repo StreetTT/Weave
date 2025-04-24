@@ -1,131 +1,371 @@
-.keyword {
-    -fx-fill: #0033B3;
+.root {
+    -fx-base: #2B2B2B;
+    -fx-background: #2B2B2B;
+    -fx-control-inner-background: #3C3F41;
+    -fx-control-inner-background-alt: #45494B;
+    -fx-accent: #00A7A7;
+    -fx-default-button: #555555;
+    -fx-focus-color: -fx-accent;
+    -fx-faint-focus-color: -fx-accent;
+    -fx-text-background-color: #BBBBBB;
+    -weave-primary-bg: #2B2B2B;
+    -weave-secondary-bg: #3C3F41;
+    -weave-tertiary-bg: #45494B;
+    -weave-text-color: #BBBBBB;
+    -weave-accent-color: #00A7A7;
+    -weave-border-color: #555555;
+    -weave-subtle-border-color: #606366;
+    -weave-success-color: #6A9955;
+    -weave-error-color: #D16969;
+    -weave-button-bg: #555555;
+    -weave-button-hover-bg: #656565;
+    -weave-editor-bg: #313335;
+    -weave-gutter-bg: #313335;
+    -weave-gutter-text: #888888;
+    -weave-scrollbar-track: #3C3F41;
+    -weave-scrollbar-thumb: #656565;
+}
+
+
+
+.main-anchor-pane {
+    -fx-background-color: -weave-primary-bg;
+}
+
+
+.tool-bar {
+    -fx-background-color: -weave-secondary-bg;
+    -fx-border-color: -weave-border-color;
+    -fx-border-width: 0 0 1px 0;
+}
+
+
+.tool-bar-label {
+     -fx-font-size: 13px;
+     -fx-text-fill: -weave-text-color;
+}
+
+.tool-bar-button {
+    -fx-background-color: -weave-button-bg;
+    -fx-text-fill: -weave-text-color;
     -fx-font-weight: bold;
-}
-.builtin {
-    -fx-fill: #7A3E9D;
-}
-.string {
-    -fx-fill: #067D17;
-}
-.comment {
-    -fx-fill: #808080;
-    -fx-font-style: italic;
-}
-.number {
-    -fx-fill: #1750EB;
-}
-.decorator {
-    -fx-fill: #808000;
-}
-.method {
-    -fx-fill: #ff5fdc;
-}
-.code-area {
-    -fx-background-color: #ffffff;
-    -fx-text-fill: #000000;
-}
-.code-area .text {
-    -fx-font-family: "Consolas", "Courier New", monospace;
     -fx-font-size: 14px;
-}
-.lineno {
-    -fx-background-color: #f0f0f0;
-    -fx-text-fill: #666;
-    -fx-padding: 0 5px;
+    -fx-padding: 8px 12px;
+    -fx-background-radius: 5px;
+    -jfx-rippler-fill: -weave-accent-color;
 }
 
+.tool-bar-button:hover {
+    -fx-background-color: -weave-button-hover-bg;
+}
 
-.p-block-rect.active-block:hover {
-    -fx-stroke: black;
-    -fx-stroke-width: 1.5;
+#addProcessButton {
+    /* -fx-background-color: #64b5f6; */
+}
+
+#runAllTopButton {
+     /* -fx-background-color: #81c784; */
 }
 
 
-.output-container {
-    -fx-background-color: #f0f0f0;
+.label, .text, .text-field, .button, .menu-item .label, .menu .label, .check-box .text {
+    -fx-text-fill: -weave-text-color;
 }
 
 
-.text-area.output-terminal {
-    -fx-control-inner-background: white;
-    -fx-text-fill: black;
-    -fx-font-family: "Consolas", "Courier New", monospace;
-    -fx-font-size: 13px;
-    -fx-background-insets: 0;
-    -fx-background-radius: 0;
-    -fx-border-color: #cccccc;
+.process-row-container {
+    -fx-background-color: -weave-secondary-bg;
+    -fx-background-radius: 15px;
+    -fx-border-radius: 15px;
+    -fx-border-color: -weave-border-color;
     -fx-border-width: 1px;
 }
 
 
-.text-area.output-terminal .content {
+.process-row-container-selected {
+    -fx-background-color: -weave-secondary-bg;
+    -fx-background-radius: 15px;
+    -fx-border-radius: 15px;
+    -fx-border-color: -weave-accent-color;
+    -fx-border-width: 2px;
+}
+
+
+.process-name-field {
+    -fx-background-color: -weave-tertiary-bg;
+    -fx-text-fill: -weave-text-color;
+    -fx-prompt-text-fill: #777777;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+    -fx-border-color: -weave-subtle-border-color;
+    -fx-border-width: 1px;
+    -fx-padding: 10px;
+    -fx-font-size: 14px;
+}
+
+
+.process-name-field-success {
+    -fx-background-color: -weave-success-color;
+    -fx-text-fill: white;
+}
+
+.process-name-field-error {
+    -fx-background-color: -weave-error-color;
+    -fx-text-fill: white;
+}
+
+
+.process-button {
+    -fx-background-color: -weave-button-bg;
+    -fx-text-fill: -weave-text-color;
+    -fx-background-radius: 0 15px 15px 0;
+    -fx-padding: 4px 10px 4px 10px;
+    -fx-font-size: 14px;
+}
+
+.process-button:hover {
+    -fx-background-color: -weave-button-hover-bg;
+}
+
+.select-button {
+    -fx-background-color: -weave-button-bg;
+    -fx-text-fill: -weave-text-color;
+    -fx-background-radius: 0 15px 15px 0;
+    -fx-padding: 4px 10px 4px 10px;
+    -fx-font-size: 1em;
+}
+
+.select-button:hover {
+     -fx-background-color: -weave-button-hover-bg;
+}
+
+
+.select-button-selected {
+    -fx-background-color: -weave-accent-color;
+    -fx-text-fill: -weave-primary-bg;
+    -fx-background-radius: 0 15px 15px 0;
+    -fx-padding: 4px 10px 4px 10px;
+    -fx-font-size: 1em;
+}
+
+.select-button-selected:hover {
+    -fx-background-color: derive(-weave-accent-color, -10%);
+}
+
+.p-block-rect {
+
+    -fx-stroke-width: 1px;
+    -fx-stroke-type: inside;
+}
+
+
+.p-block-rect-placeholder {
+    -fx-fill: transparent;
+    -fx-stroke: -weave-subtle-border-color;
+    -fx-stroke-dash-array: 3 3;
+    -fx-stroke-width: 1px;
+}
+
+
+.p-block-rect-placeholder:hover {
+     -fx-stroke: -weave-text-color;
+     -fx-fill: transparent;
+}
+
+
+.active-block {
+
+    -fx-fill: -weave-tertiary-bg;
+    -fx-stroke: -weave-subtle-border-color;
+    -fx-stroke-dash-array: none;
+    -fx-stroke-width: 1px;
+}
+
+
+.active-block:hover {
+    -fx-stroke: -weave-accent-color;
+    -fx-stroke-width: 1.5px;
+}
+
+.selected-block {
+     -fx-stroke: -weave-accent-color;
+     -fx-stroke-width: 2px;
+}
+
+
+
+
+
+.menu-bar {
+    -fx-background-color: -weave-primary-bg;
+}
+
+
+.menu-bar .menu .label {
+     -fx-text-fill: -weave-text-color;
+}
+
+
+.menu-bar .menu:hover,
+.menu-bar .menu:focused,
+.menu-bar .menu:showing {
+    -fx-background-color: -weave-secondary-bg;
+}
+
+
+.context-menu {
+    -fx-background-color: -weave-secondary-bg;
+    -fx-border-color: -weave-border-color;
+    -fx-border-width: 1px;
+}
+
+
+.menu-item .label {
+    -fx-text-fill: -weave-text-color;
+}
+
+
+.menu-item:focused {
+    -fx-background-color: -weave-accent-color;
+}
+
+
+.menu-item-separator .line {
+    -fx-stroke: -weave-border-color;
+}
+
+
+
+
+
+.code-area {
+    -fx-background-color: -weave-editor-bg;
+    -fx-text-fill: -weave-text-color; /* Default text */
+}
+
+
+.code-area .text {
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 14px;
+}
+
+
+.lineno {
+    -fx-background-color: -weave-gutter-bg; /* Match editor background */
+    -fx-text-fill: -weave-gutter-text; /* Dimmer text for line numbers */
+    -fx-padding: 0 5px 0 5px;
+}
+
+
+.keyword { -fx-fill: #569CD6; -fx-font-weight: bold; }
+.builtin { -fx-fill: #4EC9B0; }
+.string { -fx-fill: #CE9178; }
+.comment { -fx-fill: #6A9955; -fx-font-style: italic; }
+.number { -fx-fill: #B5CEA8; }
+.decorator { -fx-fill: #DCDCAA; }
+.method { -fx-fill: #DCDCAA; }
+
+
+.output-terminal {
+    -fx-control-inner-background: -weave-editor-bg; /* Match code editor bg */
+    -fx-text-fill: -weave-text-color;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 13px;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: -weave-border-color;
+    -fx-border-width: 1px 0 0 0; /* Border only on top */
+}
+
+.output-terminal .content {
     -fx-background-color: -fx-control-inner-background;
 }
 
 
-
-
-.text-area.output-terminal .scroll-bar:vertical,
-.scroll-pane .scroll-bar:vertical,
-.text-area.output-terminal .scroll-bar:horizontal,
-.scroll-pane .scroll-bar:horizontal {
-    -fx-background-color: #e0e0e0;
+.scroll-bar {
+    -fx-background-color: -weave-scrollbar-track;
     -fx-padding: 2px;
 }
 
 
-.text-area.output-terminal .scroll-bar:vertical,
-.scroll-pane .scroll-bar:vertical {
-    -fx-pref-width: 16px;
-}
+.scroll-bar:vertical { -fx-pref-width: 12px; }
+.scroll-bar:horizontal { -fx-pref-height: 12px; }
 
 
-.text-area.output-terminal .scroll-bar:horizontal,
-.scroll-pane .scroll-bar:horizontal {
-    -fx-pref-height: 16px;
-}
-
-
-.text-area.output-terminal .scroll-bar .thumb,
-.scroll-pane .scroll-bar .thumb {
-    -fx-background-color: #aaaaaa;
+.scroll-bar .thumb {
+    -fx-background-color: -weave-scrollbar-thumb;
     -fx-background-insets: 0;
-    -fx-background-radius: 0.7em;
+    -fx-background-radius: 0.5em;
 }
 
+.scroll-bar .thumb:hover {
+     -fx-background-color: derive(-weave-scrollbar-thumb, 20%);
+}
 
-.text-area.output-terminal .scroll-bar:vertical .track,
-.scroll-pane .scroll-bar:vertical .track {
+.scroll-bar .track {
      -fx-background-color: transparent;
      -fx-border-color: transparent;
      -fx-background-radius: 0.7em;
      -fx-border-radius: 0.7em;
 }
 
-
-.text-area.output-terminal .scroll-bar:horizontal .track,
-.scroll-pane .scroll-bar:horizontal .track {
-      -fx-background-color: transparent;
-      -fx-border-color: transparent;
-      -fx-background-radius: 0.7em;
-      -fx-border-radius: 0.7em;
-}
-
-
-.text-area.output-terminal .scroll-bar .increment-button,
-.text-area.output-terminal .scroll-bar .decrement-button,
-.scroll-pane .scroll-bar .increment-button,
-.scroll-pane .scroll-bar .decrement-button {
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
     -fx-background-color: transparent;
-    -fx-padding: 0 0 0 0;
+    -fx-padding: 0;
 }
 
-
-.text-area.output-terminal .scroll-bar .increment-arrow,
-.text-area.output-terminal .scroll-bar .decrement-arrow,
-.scroll-pane .scroll-bar .increment-arrow,
-.scroll-pane .scroll-bar .decrement-arrow {
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
     -fx-shape: " ";
     -fx-padding: 0;
+}
+
+
+.jfx-check-box {
+    -jfx-checked-color: -weave-accent-color;
+    -jfx-unchecked-color: -weave-text-color;
+}
+
+.jfx-button {
+    -fx-text-fill: -weave-text-color;
+}
+
+.jfx-button.process-button {
+     -fx-background-color: -weave-button-bg;
+     -fx-text-fill: -weave-text-color;
+     -fx-background-radius: 0 15px 15px 0;
+     -fx-padding: 4px 10px 4px 10px;
+     -fx-font-size: 14px;
+}
+
+.jfx-button.process-button:hover {
+     -fx-background-color: -weave-button-hover-bg;
+}
+
+.jfx-button.select-button {
+    -fx-background-color: -weave-button-bg;
+    -fx-text-fill: -weave-text-color;
+    -fx-background-radius: 0 15px 15px 0;
+    -fx-padding: 4px 10px 4px 10px;
+    -fx-font-size: 1em;
+}
+
+
+.jfx-button.select-button:hover {
+     -fx-background-color: -weave-button-hover-bg;
+}
+
+
+.jfx-button.select-button-selected {
+    -fx-background-color: -weave-accent-color;
+    -fx-text-fill: -weave-primary-bg;
+    -fx-background-radius: 0 15px 15px 0;
+    -fx-padding: 4px 10px 4px 10px;
+    -fx-font-size: 1em;
+}
+
+
+.jfx-button.select-button-selected:hover {
+    -fx-background-color: derive(-weave-accent-color, -10%);
 }

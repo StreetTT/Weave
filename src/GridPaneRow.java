@@ -16,7 +16,7 @@ import javafx.scene.shape.Rectangle;
 import java.security.Key;
 
 public class GridPaneRow extends GridPane {
-    static final int CELL_SIZE_WITH_PADDING = 100; // rects are 50 wide we add an extra 25 on each side to make 100
+    static final int CELL_SIZE_WITH_PADDING = 120;
     private int cols = 10;
     private final WeaveProcess process;
 
@@ -35,7 +35,7 @@ public class GridPaneRow extends GridPane {
 
     private void createEmptyBlockAtCol(int col) {
         Rectangle blockRect = new PBlockRect(this.process, col);
-        blockRect.setFill(new ImagePattern(PBlockRect.fillImage));
+
         this.add(blockRect, col, 0);
     }
 
@@ -152,7 +152,6 @@ public class GridPaneRow extends GridPane {
         // Create and add new block
         int newCol = cols;
         Rectangle blockRect = new PBlockRect(this.process, newCol);
-        blockRect.setFill(new ImagePattern(PBlockRect.fillImage));
         this.add(blockRect, newCol, 0);
 
         cols++;

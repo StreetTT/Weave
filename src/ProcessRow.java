@@ -39,10 +39,11 @@ public class ProcessRow extends HBox {
 
         //coinatiner for a rounded rectangle look
         roundedContainer = new VBox();
+        roundedContainer.getStyleClass().add("process-row-container");
         roundedContainer.setSpacing(10);
         roundedContainer.setPadding(new Insets(15));
         roundedContainer.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(roundedContainer,Priority.ALWAYS);
+        HBox.setHgrow(roundedContainer, Priority.ALWAYS);
 
 
 
@@ -51,49 +52,32 @@ public class ProcessRow extends HBox {
         AnchorPane topBar = new AnchorPane();
         topBar.setPrefHeight(30);
 
-        //TODO: Find a nice icon for button using a lib
+        //del
         this.deleteButton = new JFXButton("X");
+        this.deleteButton.getStyleClass().add("process-button");
         deleteButton.setRotate(90);
-        deleteButton.setStyle(
-                "-fx-background-color: #e57373;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-background-radius: 0 15 15 0;" +
-                        "-fx-padding: 4 10 4 10;"
-        );
-
         deleteButton.setTranslateY(-15);
         AnchorPane.setLeftAnchor(deleteButton, 10.0);
 
-        //TODO: Functionaility for this buttton lol
+
         this.runButton = new JFXButton("▶");
+        this.runButton.getStyleClass().add("process-button");
         this.runButton.setTooltip(new Tooltip("Run this process"));
         runButton.setRotate(90);
-        runButton.setStyle(
-                "-fx-background-color: #81c784;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-background-radius: 0 15 15 0;" +
-                        "-fx-padding: 4 10 4 10;"
-        );
-
         runButton.setTranslateY(-15);
         AnchorPane.setLeftAnchor(runButton, 50.0);
-        
+
+
+        //run button
         this.selectButton = new JFXButton("");
         selectButton.setRotate(90);
-        handleSelect();
-
         selectButton.setTranslateY(-15);
         AnchorPane.setLeftAnchor(selectButton, 90.0);
 
         //add block button
         this.addBlockButton = new JFXButton("+");
+        this.addBlockButton.getStyleClass().add("process-button");
         addBlockButton.setRotate(90);
-        addBlockButton.setStyle(
-                "-fx-background-color: #64b5f6;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-background-radius: 0 15 15 0;" +
-                        "-fx-padding: 4 10 4 10;"
-        );
         addBlockButton.setTooltip(new Tooltip("Add a new block to this process"));
         addBlockButton.setTranslateY(-15);
         AnchorPane.setLeftAnchor(addBlockButton, 130.0);
@@ -111,20 +95,20 @@ public class ProcessRow extends HBox {
 
         // CONTENT BOX AREA
 
-        //showing name of proces(TODO: link name to procces)
+        //showing name of proces
         processName = new TextField(this.process.name);
+        processName.getStyleClass().add("process-name-field");
         processName.setTooltip(new Tooltip("Enter process name"));
         processName.setPromptText("Process Name");
-        processName.setStyle(
-                "-fx-background-color: #eeeeee;" +
-                        "-fx-padding: 10;" +
-                        "-fx-font-size: 14px;" +
-                        "-fx-background-radius: 5;"
-        );
+
         processName.textProperty().addListener((obs, old, newVal) -> {
-                process.name = newVal;
-            });
+            process.name = newVal;
+        });
         processName.setMinWidth(200);
+
+        //set init style
+        handleSelect();
+
         processName.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
                 processName.getParent().requestFocus();
@@ -149,67 +133,51 @@ public class ProcessRow extends HBox {
     }
 
     public void setStatus(byte status){
-
-
         final int PROCESS_FINISHED = 2;
         final int PROCESS_ERROR = 3;
 
-        switch (status) {
-            case PROCESS_FINISHED:
-
-                processName.setStyle("-fx-background-color: #00ff00;");
-
-                break;
-            case PROCESS_ERROR:
-
-                processName.setStyle("-fx-background-color: #ff0000;");
-                break;
-
-            default:
-                processName.setStyle("-fx-background-color: #eeeeee;");
-                break;
+        // Remove previous status styles first
+        processName.getStyleClass().removeAll("process-name-field-success", "process-name-field-error");
+        // Ensure base style is always present
+        if (!processName.getStyleClass().contains("process-name-field")) {
+            processName.getStyleClass().add("process-name-field");
         }
 
 
-
-
+        switch (status) {
+            case PROCESS_FINISHED:
+                // Apply success style class
+                processName.getStyleClass().add("process-name-field-success");
+                break;
+            case PROCESS_ERROR:
+                // Apply error style class
+                processName.getStyleClass().add("process-name-field-error");
+                break;
+            default:
+                // No additional style class needed, base style is sufficient
+                break;
+        }
 
     }
 
     public void handleSelect() {
+        selectButton.getStyleClass().removeAll("select-button", "select-button-selected");
+        roundedContainer.getStyleClass().removeAll("process-row-container", "process-row-container-selected");
+
         if (selected) {
-            selectButton.setStyle(
-                "-fx-background-color:rgb(45, 47, 45);" +
-                "-fx-text-fill: white;" +
-                "-fx-background-radius: 0 15 15 0;" +
-                "-fx-padding: 4 10 4 10;" + 
-                "-fx-font-size: 1em;"
-            );
+            selectButton.getStyleClass().add("select-button");
             selectButton.setText("◌");
-            roundedContainer.setStyle(
-                "-fx-background-color: #ffffff;" +
-                "-fx-background-radius: 15px;" +
-                "-fx-border-radius: 15px;" +
-                "-fx-border-color: #cccccc;" +
-                "-fx-border-width: 1px;"
-            );
+
+            roundedContainer.getStyleClass().add("process-row-container");
+
             selected = false;
         } else {
-            selectButton.setStyle(
-                "-fx-background-color:rgb(132, 215, 253);" +
-                "-fx-text-fill: black;" +
-                "-fx-background-radius: 0 15 15 0;" +
-                "-fx-padding: 4 10 4 10;" 
-            );
-            selectButton.setText("●");
-            roundedContainer.setStyle(
-                "-fx-background-color:#394346;" +
-                "-fx-background-radius: 15px;" +
-                "-fx-border-radius: 15px;" +
-                "-fx-border-color:rgb(0, 0, 0);" +
-                "-fx-border-width: 1px;"
-            );
-            selected = true; 
+            selectButton.getStyleClass().add("select-button-selected");
+            selectButton.setText("●"); // Filled circle
+
+            roundedContainer.getStyleClass().add("process-row-container-selected");
+
+            selected = true;
         }
     }
 
