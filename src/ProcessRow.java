@@ -1,20 +1,12 @@
 import javafx.application.Platform;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Tooltip;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 
 import com.jfoenix.controls.*;
 import javafx.geometry.*;
-import javafx.scene.paint.Color;
-
-import javax.lang.model.AnnotatedConstruct;
-import javax.swing.*;
 
 
 public class ProcessRow extends HBox {
@@ -23,6 +15,7 @@ public class ProcessRow extends HBox {
     public JFXButton runButton;
     public JFXButton selectButton;
     public boolean selected = true;
+    public TextField processName;
     private Runnable onBlockAddedCallback;
     VBox roundedContainer;
     WeaveProcess process;
@@ -119,7 +112,7 @@ public class ProcessRow extends HBox {
         // CONTENT BOX AREA
 
         //showing name of proces(TODO: link name to procces)
-        TextField processName = new TextField(this.process.name);
+        processName = new TextField(this.process.name);
         processName.setTooltip(new Tooltip("Enter process name"));
         processName.setPromptText("Process Name");
         processName.setStyle(
@@ -153,6 +146,34 @@ public class ProcessRow extends HBox {
         //put all of the objects together
         roundedContainer.getChildren().addAll(topBar, contentBox);
         this.getChildren().add(roundedContainer);
+    }
+
+    public void setStatus(Byte status){
+
+
+        final int PROCESS_FINISHED = 2;
+        final int PROCESS_ERROR = 3;
+
+        switch (status) {
+            case PROCESS_FINISHED:
+
+                processName.setStyle("-fx-background-color: #00ff00;");
+
+                break;
+            case PROCESS_ERROR:
+
+                processName.setStyle("-fx-background-color: #ff0000;");
+                break;
+
+            default:
+                processName.setStyle("-fx-background-color: #eeeeee;");
+                break;
+        }
+
+
+
+
+
     }
 
     public void handleSelect() {
