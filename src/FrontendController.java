@@ -1,6 +1,9 @@
+import com.jfoenix.controls.JFXButton;
+import com.jfoenix.controls.JFXCheckBox;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
@@ -10,6 +13,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -42,6 +46,10 @@ public class FrontendController {
     public Region spacer;
     @FXML
     public TextArea  outputTextArea;
+    @FXML
+    public JFXCheckBox selectAllCheckBox;
+    @FXML
+    public JFXButton runAllTopButton;
 
     private ArrayList<WeaveProcess> selectedProcesses = new ArrayList<>();
     private static final int MAX_RECENT = 5;    // max amount of recent projects
@@ -57,7 +65,13 @@ public class FrontendController {
         populateRecentProjectsMenu();
 
 
-        //LISTENERS
+        //LISTENERS/HANDLERS
+
+        //select all
+        if (selectAllCheckBox != null) {
+            selectAllCheckBox.setOnAction(this::handleSelectAllCheckBox);
+        }
+        //for line changing
         processContainer.getChildren().addListener((ListChangeListener<Node>) c -> {
             while (c.next()) {
 
@@ -73,12 +87,28 @@ public class FrontendController {
         javafx.application.Platform.runLater(this::updateColoumLines);
     }
 
+    @FXML
+    private void handleSelectAllCheckBox(ActionEvent actionEvent) {
+        boolean isSelected = selectAllCheckBox.isSelected();
+
+        for(Node node: processContainer.getChildren()){
+            if (node instanceof ProcessRow){
+                ProcessRow row = (ProcessRow) node;
+                if (row.selected != isSelected){
+                    row.selectButton.fire();
+                }
+            }
+        }
+    }
+
 
     @FXML
     public void handleAddProcessRow() {
         //adds a row, any other functionatilty can be added here for adding a row
         addRow();
     }
+
+
 
 
     private void showStartupDialog() {
