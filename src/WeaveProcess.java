@@ -3,6 +3,7 @@ public class WeaveProcess {
     public Block[] blocks;
     public String name = "";
     int largestIndex = 0;
+    public ProcessRow myRow;
 
     public WeaveProcess() {
         this.blocks = new Block[1024];

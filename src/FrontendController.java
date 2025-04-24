@@ -189,8 +189,8 @@ public class FrontendController {
         WeaveProcess process = new WeaveProcess();
         process.name = name;
         Frontend.processes.add(process);
-
         ProcessRow newRow = new ProcessRow(process);
+        process.myRow = newRow;
         newRow.setOnBlockAdded(this::updateColoumLines);
 
         newRow.deleteButton.setOnAction(e -> {
