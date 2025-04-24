@@ -349,6 +349,7 @@ public class FrontendController {
         byte[] results = Scheduler.Scheduler().runProcesses(Frontend.processes);
 
         setAllProcessesStatus(Frontend.processes, results);
+        updateOutputTerminal();
     }
 
     public void runSelectedProcesses() {
