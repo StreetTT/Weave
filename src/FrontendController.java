@@ -75,7 +75,7 @@ public class FrontendController {
 
 
     @FXML
-    public void handleAddProcessRow(){
+    public void handleAddProcessRow() {
         //adds a row, any other functionatilty can be added here for adding a row
         addRow();
     }
