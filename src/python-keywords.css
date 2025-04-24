@@ -36,6 +36,12 @@
 }
 
 
+.p-block-rect.active-block:hover {
+    -fx-stroke: black;
+    -fx-stroke-width: 1.5;
+}
+
+
 .output-container {
     -fx-background-color: #f0f0f0;
 }

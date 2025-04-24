@@ -21,7 +21,11 @@ public class PBlockRect extends Rectangle implements Cloneable {
         this.pos = pos;
         this.process = process;
 
+        //styling
+        this.getStyleClass().add("p-block-rect");
+
         setFill(new ImagePattern(fillImage));
+        setStroke(null);
 
         setOnMouseClicked(this::handleClick);
         setOnMousePressed(this::handlePressed);
@@ -30,7 +34,12 @@ public class PBlockRect extends Rectangle implements Cloneable {
 
     public void activateBlock() {
         this.block = process.addBlock(this.pos);
-        setFill(Color.GREEN);
+        setFill(Color.WHITE);
+        setStroke(Color.GRAY);
+        setStrokeWidth(1.0);
+        if (!this.getStyleClass().contains("active-block")) {
+            this.getStyleClass().add("active-block");
+        }
     }
 
     private void handleClick(MouseEvent event) {
@@ -40,7 +49,6 @@ public class PBlockRect extends Rectangle implements Cloneable {
                 if (this.editor == null) {
                     this.editor = new PopupEditor(this.block);
                 }
-
                 this.editor.showPopup();
             } else {
                 activateBlock();
@@ -50,15 +58,26 @@ public class PBlockRect extends Rectangle implements Cloneable {
 
     private void handlePressed(MouseEvent event) {
         if (this.block != null) {
-            setFill(new Color(0, 0.3, 0, 1));
+            setFill(Color.web("#f0f0f0"));
+            setStroke(Color.BLACK);
+            setStrokeWidth(1.5);
         }
     }
 
     private void handleRelease(MouseEvent event) {
         if (this.block != null) {
-            this.setFill(Color.GREEN);
+
+            setFill(Color.WHITE);
+            setStroke(Color.GRAY);
+            setStrokeWidth(1.0);
+
+            if (!this.getStyleClass().contains("active-block")) {
+                this.getStyleClass().add("active-block");
+            }
         } else {
             this.setFill(new ImagePattern(PBlockRect.fillImage));
+            this.setStroke(null);
+            this.getStyleClass().remove("active-block");
         }
     }
 
