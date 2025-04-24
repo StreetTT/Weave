@@ -242,7 +242,7 @@ public class Scheduler {
     public boolean saveProjectFile(ArrayList<WeaveProcess> processes) {
         Path path = Paths.get(this.projectDir + "/" + this.projectName + ".wve");
         // should be enough for all proceses and the headers
-        ByteBuffer bytesToWrite = ByteBuffer.allocate(256 * (processes.size() + 1));
+        ByteBuffer bytesToWrite = ByteBuffer.allocate(512 * (processes.size() + 1) + projectName.length()*Character.BYTES);
 
         bytesToWrite.order(ByteOrder.LITTLE_ENDIAN); // little endian on every architecture that matters
         bytesToWrite.putInt(WEAVE_FILE_IDENTIFIER);
@@ -257,6 +257,13 @@ public class Scheduler {
         for (int i = 0; i < processes.size(); ++i) {
             bytesToWrite.putInt(PROCESS_IDENTIFIER); // 4 bytes
             WeaveProcess process = processes.get(i);
+            bytesToWrite.putInt(Math.min(process.name.length(), 80));
+
+            // cap it at 80 chars max
+            for (int c = 0; c < process.name.length() && c < 80; ++c) {
+                bytesToWrite.putChar(process.name.charAt(c));
+            }
+
             for (int j = 0; j < 256 / 8; ++j) {
                 byte blocksByte = 0;
                 for (int k = 0; k < 8; ++k) {

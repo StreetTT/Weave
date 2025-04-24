@@ -105,7 +105,7 @@ public class FrontendController {
     @FXML
     public void handleAddProcessRow() {
         //adds a row, any other functionatilty can be added here for adding a row
-        addRow();
+        addRow("");
     }
 
 
@@ -176,17 +176,18 @@ public class FrontendController {
 
                 Scheduler.Scheduler().projectName = name.get();
                 saveProjectAs();
-                addRow();
-                addRow();
+                addRow("");
+                addRow("");
             } else if (action.equals(openProject)) {
                 openProject();
             }
         });
     }
 
-    public ProcessRow addRow() {
+    public ProcessRow addRow(String name) {
         // Create a new row
         WeaveProcess process = new WeaveProcess();
+        process.name = name;
         Frontend.processes.add(process);
 
         ProcessRow newRow = new ProcessRow(process);
@@ -415,8 +416,14 @@ public class FrontendController {
                 }
 
                 if (validProcess) {
+                    int nameLength = contents.getInt();
+                    StringBuilder processName = new StringBuilder();
+                    for (int i = 0; i < nameLength; ++i) {
+                            processName.append(contents.getChar());
+                    }
+
                     if (contents.remaining() > (256 / 8)) {
-                        ProcessRow row = addRow();
+                        ProcessRow row = addRow(processName.toString());
                         // read in entire file and parse
                         Path processFile = Paths.get(Scheduler.Scheduler().projectDir + "/sourceFiles/" + projectName + "_PROCESS_" + (currentProcess + 1) + ".py");
                         currentProcess++;
