@@ -148,7 +148,7 @@ public class ProcessRow extends HBox {
         this.getChildren().add(roundedContainer);
     }
 
-    public void setStatus(Byte status){
+    public void setStatus(byte status){
 
 
         final int PROCESS_FINISHED = 2;
