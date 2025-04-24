@@ -108,12 +108,10 @@ public class Scheduler {
         }
 
         try {
-            Files.copy(Paths.get("./weave_shared.py"), Paths.get(dirpath + "/weave_shared.py"), StandardCopyOption.COPY_ATTRIBUTES);
-            Files.copy(Paths.get("./lib/weave_native.dll"), Paths.get(libpath + "/weave_native.dll"), StandardCopyOption.COPY_ATTRIBUTES);
-            Files.copy(Paths.get("./lib/weave_native.so"), Paths.get(libpath + "/weave_native.so"), StandardCopyOption.COPY_ATTRIBUTES);
-        } catch (FileAlreadyExistsException existsException) {
-                // ignore because we dont care
-        } catch (IOException e) {
+            Files.copy(Paths.get("./weave_shared.py"), Paths.get(dirpath + "/weave_shared.py"), StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(Paths.get("./lib/weave_native.dll"), Paths.get(libpath + "/weave_native.dll"), StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(Paths.get("./lib/weave_native.so"), Paths.get(libpath + "/weave_native.so"), StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
+        }  catch (IOException e) {
             System.err.println("Failed to copy over weave runtime files");
             e.printStackTrace();
             return false;
