@@ -38,6 +38,7 @@ public class SchedulerTests {
 
         assertEquals(contents.getInt(), processes.size());
         assertEquals(contents.getInt(), Scheduler.Scheduler().PROCESS_IDENTIFIER);
+        assertEquals(contents.getInt(), 0);
         assertEquals(0b00010100, contents.get());
     }
 }

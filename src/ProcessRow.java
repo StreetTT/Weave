@@ -119,7 +119,7 @@ public class ProcessRow extends HBox {
         // CONTENT BOX AREA
 
         //showing name of proces(TODO: link name to procces)
-        TextField processName = new TextField("");
+        TextField processName = new TextField(this.process.name);
         processName.setTooltip(new Tooltip("Enter process name"));
         processName.setPromptText("Process Name");
         processName.setStyle(

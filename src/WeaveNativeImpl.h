@@ -13,6 +13,8 @@ extern "C" {
 #define WeaveNativeImpl_PROCESS_ACQUIRED 1L
 #undef WeaveNativeImpl_PROCESS_FINISHED
 #define WeaveNativeImpl_PROCESS_FINISHED 2L
+#undef WeaveNativeImpl_PROCESS_ERROR
+#define WeaveNativeImpl_PROCESS_ERROR 3L
 /*
  * Class:     WeaveNativeImpl
  * Method:    Init

@@ -19,9 +19,12 @@ struct Reader {
         volatile BOOL working;
 };
 
-static void *MAPPED_FILE;
 static HANDLE FILE_HANDLE;
+
+static void *MAPPED_FILE;
 static HANDLE *MUTEX_ARRAY;
+static int MAPPING_SIZE = sizeof(HANDLE) * MAX_PROCESSES + MAX_PROCESSES;
+
 #endif
 
 #ifdef __linux__
