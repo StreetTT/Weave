@@ -18,4 +18,8 @@ public class WeaveNativeStub implements WeaveNative {
     public ByteBuffer GetProcessesOutput() {
         return ByteBuffer.allocate(1);
     }
+
+    public byte[] GetSignalArray(int[] pids) {
+        return new byte[pids.length];
+    }
 }

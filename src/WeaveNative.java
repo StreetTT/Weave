@@ -13,5 +13,6 @@ public interface WeaveNative {
     public void RunPidsAndWait(int[] pids);
     public void CreatePythonProcess(int pid, String process);
     public void resetSignalArray(int[] pids);
+    public byte[] GetSignalArray(int[] pids);
     public boolean allProcessesFinished(int[] pids);
 }

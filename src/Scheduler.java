@@ -162,7 +162,7 @@ public class Scheduler {
                 fullFileString.append("\n\n");
 
                 // release the mutex even if an exception occurs
-                fullFileString.append("    except Exception as e:\n" + INDENT + "__WEAVE.__WEAVE_PROCESS_END()\n" + INDENT + "raise e\n\n");
+                fullFileString.append("    except Exception as e:\n" + INDENT + "__WEAVE.__WEAVE_PROCESS_END_ERROR()\n" + INDENT + "raise e\n\n");
                 if (blockIdx != process.largestIndex) {
                     fullFileString.append("    __WEAVE.__WEAVE_WAIT_TILL_SCHEDULED()\n");
                 } else {
@@ -194,7 +194,7 @@ public class Scheduler {
 
 
     // TODO(Ray): Can test but probably not using JUnit
-    public void runProcesses(ArrayList<WeaveProcess> processes) {
+    public byte[] runProcesses(ArrayList<WeaveProcess> processes) {
         final String outputDir = "outFiles";
         this.writeProcessesToDisk(processes, outputDir);
         WeaveNative wn = WeaveNativeFactory.get();
@@ -231,8 +231,11 @@ public class Scheduler {
             wn.ReleaseProcess(getPIDFromIDX(i));
         }
 
-        wn.resetSignalArray(pids);
 
+        byte[] results = wn.GetSignalArray(pids); // happens before reset
+
+        wn.resetSignalArray(pids);
+        return results;
     }
 
     //TODO(Ray): 100% can unit test this function

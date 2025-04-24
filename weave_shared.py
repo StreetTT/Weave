@@ -12,6 +12,10 @@ PROGRAM_MUTEX = None
 PROGRAM_SIGNAL_IDX = None
 _MAX_PROCESSES = 256
 
+__W_PROCESS_ACTIVE = 1
+__W_PROCESS_FINISHED = 2
+__W_PROCESS_ERROR = 3
+
 if sys.platform == "win32":
     def __WEAVE_PID_TO_MUTEX(pid):
         mutex_size = 8
@@ -65,19 +69,24 @@ def __WEAVE_PROCESS_START(pid):
     LIB.python_mutex_release.restype = None
 
     LIB.python_mutex_lock(__WEAVE_PID_TO_MUTEX(PID))
-    WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] = 1
+    WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] = __W_PROCESS_ACTIVE
 
 # Must occur after every single function call/block
 def __WEAVE_WAIT_TILL_SCHEDULED():
     LIB.python_mutex_release(__WEAVE_PID_TO_MUTEX(PID))
-    while (WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] == 1):
+    while (WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] == __W_PROCESS_ACTIVE):
         continue
 
     LIB.python_mutex_lock(__WEAVE_PID_TO_MUTEX(PID))
-    WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] = 1
+    WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] = __W_PROCESS_ACTIVE
 
+
+def __WEAVE_PROCESS_END_ERROR():
+    WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] = __W_PROCESS_ERROR
+    LIB.python_mutex_release(__WEAVE_PID_TO_MUTEX(PID))
+    WEAVE_IPCMEM.close()
 
 def __WEAVE_PROCESS_END():
-    WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] = 2
+    WEAVE_IPCMEM[PROGRAM_SIGNAL_IDX] = __W_PROCESS_FINISHED
     LIB.python_mutex_release(__WEAVE_PID_TO_MUTEX(PID))
     WEAVE_IPCMEM.close()
