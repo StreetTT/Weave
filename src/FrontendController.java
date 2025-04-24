@@ -81,10 +81,8 @@ public class FrontendController {
     }
 
 
-
-    //FIXME: force them to name a new project
     private void showStartupDialog() {
-        Dialog<String> dialog = new Dialog<>();
+        Dialog<Integer> dialog = new Dialog<>();
         dialog.setTitle("Welcome to Weave");
         dialog.setHeaderText("Choose an option to continue");
 
@@ -110,12 +108,15 @@ public class FrontendController {
         dialog.getDialogPane().getButtonTypes().addAll(newProjectBtn, openProjectBtn);
 
         // Handle button clicks
+        final int openProject = 0;
+        final int newProject = 1;
         dialog.setResultConverter(buttonType -> {
             if (buttonType == newProjectBtn) {
-                return "new";
+                return newProject;
             } else if (buttonType == openProjectBtn) {
-                return "open";
+                return openProject;
             }
+
             return null;
         });
 
@@ -130,11 +131,12 @@ public class FrontendController {
             }
         });
 
-        Optional<String> result = dialog.showAndWait();
+        Optional<Integer> result = dialog.showAndWait();
         result.ifPresent(action -> {
-            if (action.equals("new")) {
+            if (action.equals(newProject)) {
                 // Handle new project
                 Optional<String> name;
+                //FIXME(Ray): Let the user exit
                 do {
                     TextInputDialog projectNameDialog = new TextInputDialog();
                     projectNameDialog.setTitle("New Project");
@@ -146,7 +148,7 @@ public class FrontendController {
                 saveProjectAs();
                 addRow();
                 addRow();
-            } else if (action.equals("open")) {
+            } else if (action.equals(openProject)) {
                 openProject();
             }
         });
@@ -302,13 +304,16 @@ public class FrontendController {
     }
 
     public void runProcesses() {
-        //TOOD: Prompt the user to save before running processes
+        //TODO: Prompt the user to save before running processes
         Scheduler.Scheduler().saveProjectFile(Frontend.processes);
+        Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
         Scheduler.Scheduler().runProcesses(Frontend.processes);
         updateOutputTerminal();
     }
 
     public void runSelectedProcesses() {
+        Scheduler.Scheduler().saveProjectFile(Frontend.processes);
+        Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
         Scheduler.Scheduler().runProcesses(selectedProcesses);
         updateOutputTerminal();
     }
