@@ -108,9 +108,6 @@ public class FrontendController {
         addRow("");
     }
 
-
-
-
     private void showStartupDialog() {
         Dialog<Integer> dialog = new Dialog<>();
         dialog.setTitle("Welcome to Weave");
@@ -136,6 +133,12 @@ public class FrontendController {
         
         dialog.getDialogPane().setContent(content);
         dialog.getDialogPane().getButtonTypes().addAll(newProjectBtn, openProjectBtn);
+
+        // JavaFx forces you to have a cancel button before you can close a dialog
+        // literally stupid
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        Node closeButton = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        closeButton.setVisible(false);
 
         // Handle button clicks
         final int openProject = 0;
@@ -166,20 +169,36 @@ public class FrontendController {
             if (action.equals(newProject)) {
                 // Handle new project
                 Optional<String> name;
-                //FIXME(Ray): Let the user exit
                 do {
-                    TextInputDialog projectNameDialog = new TextInputDialog();
+                    TextInputDialog projectNameDialog = new TextInputDialog("Default Name");
                     projectNameDialog.setTitle("New Project");
                     projectNameDialog.setHeaderText("Choose A Project Name");
+                    projectNameDialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+                    Node button = projectNameDialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+                    button.setVisible(false);
+
+                    dialog.setOnCloseRequest(event -> System.exit(1));
+
                     name = projectNameDialog.showAndWait();
+
+                    if (!name.isPresent()) {
+                        System.exit(0);
+                    }
+
                 } while (name.isEmpty());
 
                 Scheduler.Scheduler().projectName = name.get();
-                saveProjectAs();
+                if (!saveProjectAs()) {
+                    System.exit(0);
+                }
                 addRow("");
                 addRow("");
             } else if (action.equals(openProject)) {
-                openProject();
+                if (!openProject()) {
+                    System.exit(0);
+                }
+            } else {
+                System.exit(0);
             }
         });
     }
@@ -361,12 +380,15 @@ public class FrontendController {
         setAllProcessesStatus(this.selectedProcesses, results);
     }
 
-    public void saveProjectAs(){
+    public boolean saveProjectAs(){
         File folder = this.showSaveDialogBox();
         if (folder != null) {
             Scheduler.Scheduler().projectDir = folder.toString();
             Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
             Scheduler.Scheduler().saveProjectFile(Frontend.processes);
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -482,12 +504,15 @@ public class FrontendController {
         }
     }
 
-    public void openProject() {
+    public boolean openProject() {
         File file = this.showOpenDialogBox();
         if (file == null) {
-            return;
+            return false;
         }
+
         loadProject(file);
+
+        return true;
     }
 
     private void populateRecentProjectsMenu() {

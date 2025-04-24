@@ -23,7 +23,6 @@ public class Frontend extends Application {
     public void start(Stage primaryStage) {
 
         Parent root;
-        Scheduler.Scheduler(); // init
         try {
             root = FXMLLoader.load(getClass().getResource("frontend.fxml"));
         } catch (IOException e) {
@@ -60,6 +59,8 @@ public class Frontend extends Application {
 
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        Scheduler.Scheduler(); // init this stuff last
     }
 
     public void closeFunction(WindowEvent e) {

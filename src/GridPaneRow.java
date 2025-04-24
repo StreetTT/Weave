@@ -21,11 +21,9 @@ public class GridPaneRow extends GridPane {
     private final WeaveProcess process;
 
 
-    // for drag and drop
     private int initialCol;
     private PBlockRect dragRect; // for drag and drop
-    private PBlockRect selectedRect; // for copy and past
-    private PBlockRect copyRect; // for copy and past
+    private PBlockRect selectedRect; // for drag and drop
     private long clickStartTime;
 
 
