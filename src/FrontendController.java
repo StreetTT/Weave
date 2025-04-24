@@ -338,8 +338,7 @@ public class FrontendController {
         //TODO: Prompt the user to save before running processes
         Scheduler.Scheduler().saveProjectFile(Frontend.processes);
         Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
-        Scheduler.Scheduler().runProcesses(Frontend.processes);
-        updateOutputTerminal();
+        Byte[] results = Scheduler.Scheduler().runProcesses(Frontend.processes);
     }
 
     public void runSelectedProcesses() {

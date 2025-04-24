@@ -34,44 +34,6 @@ public class PBlockRect extends Rectangle implements Cloneable {
         setOnMouseReleased(this::handleRelease);
     }
 
-    public void setStatus(byte status) {
-        if (this.block == null) {
-            return;
-        }
-        Paint strokeColor = Color.GRAY;
-        double strokeWidth = 1.0;
-
-
-        final int PROCESS_FINISHED = 2;
-        final int PROCESS_ERROR = 3;
-
-        switch (status) {
-            case PROCESS_FINISHED:
-                strokeColor = Color.LIMEGREEN;
-                break;
-            case PROCESS_ERROR:
-                strokeColor = Color.RED;
-                strokeWidth = 1.5;
-                break;
-
-            default:
-
-                strokeColor = Color.GRAY;
-                break;
-        }
-
-
-        final Paint finalStrokeColor = strokeColor;
-        final double finalStrokeWidth = strokeWidth;
-        final Paint finalFill = Color.WHITE;
-
-
-        Platform.runLater(() -> {
-            setStroke(finalStrokeColor);
-            setStrokeWidth(finalStrokeWidth);
-            setFill(finalFill);
-        });
-    }
 
     public void activateBlock() {
         this.block = process.addBlock(this.pos);
