@@ -199,6 +199,7 @@ public class FrontendController {
                     //update lines
                     updateColoumLines();
         });
+
         newRow.deleteButton.setTooltip(new Tooltip("Delete this process"));
         newRow.selectButton.setOnAction(e -> {
             newRow.handleSelect();
@@ -334,18 +335,29 @@ public class FrontendController {
         }
     }
 
+    public void setAllProcessesStatus(ArrayList<WeaveProcess> processes, byte[] processStatusBytes) {
+        for (int i = 0; i < processes.size(); ++i)  {
+            WeaveProcess process = Frontend.processes.get(i);
+            process.myRow.setStatus(processStatusBytes[i]);
+        }
+    }
+
     public void runProcesses() {
         //TODO: Prompt the user to save before running processes
         Scheduler.Scheduler().saveProjectFile(Frontend.processes);
         Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
         byte[] results = Scheduler.Scheduler().runProcesses(Frontend.processes);
+
+        setAllProcessesStatus(Frontend.processes, results);
     }
 
     public void runSelectedProcesses() {
         Scheduler.Scheduler().saveProjectFile(Frontend.processes);
         Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
-        Scheduler.Scheduler().runProcesses(selectedProcesses);
+        byte[] results = Scheduler.Scheduler().runProcesses(this.selectedProcesses);
         updateOutputTerminal();
+
+        setAllProcessesStatus(this.selectedProcesses, results);
     }
 
     public void saveProjectAs(){
