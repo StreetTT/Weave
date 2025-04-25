@@ -14,7 +14,6 @@
                     <menus>
                         <Menu mnemonicParsing="false" text="File">
                             <items>
-                                <MenuItem mnemonicParsing="false" text="Create new project" />
                                 <MenuItem mnemonicParsing="false" text="Add new python process" onAction="#handleAddProcessRow"/>
                                 <MenuItem mnemonicParsing="false" onAction="#saveProject" text="Save project" />
                                 <MenuItem mnemonicParsing="false" onAction="#saveProjectAs" text="Save project as" />
@@ -24,15 +23,6 @@
                                     </items>
                                 </Menu>
                                 <MenuItem mnemonicParsing="false" text="Export current project" />
-                            </items>
-                        </Menu>
-                        <Menu mnemonicParsing="false" text="Edit">
-                            <items>
-                                <MenuItem mnemonicParsing="false" text="Find python file" />
-                                <MenuItem mnemonicParsing="false" text="Copy python file" />
-                                <MenuItem mnemonicParsing="false" text="Paste python file" />
-                                <MenuItem mnemonicParsing="false" text="Select all files" />
-                                <MenuItem mnemonicParsing="false" text="Move selected file to" />
                             </items>
                         </Menu>
                         <Menu mnemonicParsing="false" text="Run">
