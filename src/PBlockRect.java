@@ -63,6 +63,10 @@ public class PBlockRect extends Rectangle implements Cloneable {
         //DELET
         if (event.isAltDown()) {
             this.block = null;
+            if (this.editor.showing) {
+                this.editor.currStage.close();
+            }
+
             this.editor = null;
             this.process.removeBlock(this.pos);
             this.getStyleClass().remove("active-block");

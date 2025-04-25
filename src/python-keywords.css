@@ -11,7 +11,7 @@
     -weave-primary-bg: #2B2B2B;
     -weave-secondary-bg: #3C3F41;
     -weave-tertiary-bg: #45494B;
-    -weave-text-color: #BBBBBB;
+    -weave-text-color: #CCCCCC;
     -weave-accent-color: #00A7A7;
     -weave-border-color: #555555;
     -weave-subtle-border-color: #606366;
@@ -278,6 +278,7 @@
 .code-area .text {
     -fx-font-family: "Consolas", "Courier New", monospace;
     -fx-font-size: 14px;
+    -fx-text-fill: -weave-text-color;
 }
 
 
@@ -295,6 +296,7 @@
 .number { -fx-fill: #B5CEA8; }
 .decorator { -fx-fill: #DCDCAA; }
 .method { -fx-fill: #DCDCAA; }
+.plainText {-fx-fill: -weave-text-color}
 
 
 .output-terminal {
