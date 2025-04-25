@@ -219,6 +219,12 @@ public class FrontendController {
                     updateColoumLines();
         });
 
+
+        newRow.runButton.setOnAction(e -> {
+
+            runSingleProcessTask(process);
+        });
+
         newRow.deleteButton.setTooltip(new Tooltip("Delete this process"));
         newRow.selectButton.setOnAction(e -> {
             newRow.handleSelect();
@@ -359,6 +365,16 @@ public class FrontendController {
             WeaveProcess process = Frontend.processes.get(i);
             process.myRow.setStatus(processStatusBytes[i]);
         }
+    }
+
+    public void runSingleProcessTask(WeaveProcess processToRun){
+        Scheduler.Scheduler().saveProjectFile(Frontend.processes);
+        Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
+        ArrayList<WeaveProcess> singleProcessList = new ArrayList<>();
+        singleProcessList.add(processToRun);
+        byte[] results = Scheduler.Scheduler().runProcesses(singleProcessList);
+        setAllProcessesStatus(singleProcessList, results);
+        updateOutputTerminal();
     }
 
     public void runProcesses() {
