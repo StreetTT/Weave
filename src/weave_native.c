@@ -245,7 +245,7 @@ JNIEXPORT jlong JNICALL Java_WeaveNativeImpl_CreatePythonProcess(JNIEnv *env, jo
         startup_info.dwFlags |= STARTF_USESTDHANDLES;
 
         PROCESS_INFORMATION pi;
-        if (!CreateProcessA(0, full_process_str, 0, 0, TRUE, NORMAL_PRIORITY_CLASS | CREATE_NEW_CONSOLE, 0, 0, &startup_info, &pi)) {
+        if (!CreateProcessA(0, full_process_str, 0, 0, TRUE, NORMAL_PRIORITY_CLASS, 0, 0, &startup_info, &pi)) {
             fprintf(stderr, "C ERROR: Error creating process");
             exit(1);
         }
