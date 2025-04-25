@@ -53,14 +53,14 @@ public class ProcessRow extends HBox {
 
         //del
         this.deleteButton = new JFXButton("X");
-        this.deleteButton.getStyleClass().add("process-button");
+        this.deleteButton.getStyleClass().add("process-delete-button");
         deleteButton.setRotate(90);
         deleteButton.setTranslateY(-15);
         AnchorPane.setLeftAnchor(deleteButton, 10.0);
 
 
         this.runButton = new JFXButton("▶");
-        this.runButton.getStyleClass().add("process-button");
+        this.runButton.getStyleClass().add("process-run-button");
         this.runButton.setTooltip(new Tooltip("Run this process"));
         runButton.setRotate(90);
         runButton.setTranslateY(-15);
@@ -75,7 +75,7 @@ public class ProcessRow extends HBox {
 
         //add block button
         this.addBlockButton = new JFXButton("+");
-        this.addBlockButton.getStyleClass().add("process-button");
+        this.addBlockButton.getStyleClass().add("process-button-addblock");
         addBlockButton.setRotate(90);
         addBlockButton.setTooltip(new Tooltip("Add a new block to this process"));
         addBlockButton.setTranslateY(-15);

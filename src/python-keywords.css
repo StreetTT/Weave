@@ -55,6 +55,7 @@
     -jfx-rippler-fill: -weave-accent-color;
 }
 
+
 .tool-bar-button:hover {
     -fx-background-color: -weave-button-hover-bg;
 }
@@ -121,6 +122,37 @@
     -fx-background-radius: 0 15px 15px 0;
     -fx-padding: 4px 10px 4px 10px;
     -fx-font-size: 14px;
+}
+
+.process-delete-button {
+    -fx-background-color: #c74e4e;
+    -fx-text-fill: black;
+    -fx-background-radius: 0 15 15 0;
+    -fx-padding: 4 10 4 10;
+}
+.process-run-button {
+    -fx-background-color: #50a354;
+    -fx-text-fill: black;
+    -fx-background-radius: 0 15 15 0;
+    -fx-padding: 4 10 4 10;
+}
+
+.process-button-addblock {
+    -fx-background-color: #3f8ed1;
+    -fx-text-fill: black;
+    -fx-background-radius: 0 15 15 0;
+    -fx-padding: 4 10 4 10;
+}
+
+.process-button-addblock:hover {
+    -fx-background-color: #2468a3;
+}
+.process-run-button:hover {
+    -fx-background-color: #418744;
+}
+
+.process-delete-button:hover {
+    -fx-background-color: #943434;
 }
 
 .process-button:hover {

@@ -165,8 +165,9 @@ public class FrontendController {
         });
 
         Optional<Integer> result = dialog.showAndWait();
-        result.ifPresent(action -> {
-            if (action.equals(newProject)) {
+        if (result.isPresent()) {
+            int action = result.get();
+            if (action == newProject) {
                 // Handle new project
                 Optional<String> name;
                 do {
@@ -191,16 +192,17 @@ public class FrontendController {
                 if (!saveProjectAs()) {
                     System.exit(0);
                 }
+
                 addRow("");
                 addRow("");
-            } else if (action.equals(openProject)) {
+            } else if (action == openProject) {
                 if (!openProject()) {
                     System.exit(0);
                 }
-            } else {
-                System.exit(0);
             }
-        });
+        } else {
+            System.exit(0);
+        }
     }
 
     public ProcessRow addRow(String name) {
@@ -230,16 +232,13 @@ public class FrontendController {
             newRow.handleSelect();
             if (newRow.selected) {
                 selectedProcesses.add(newRow.process); // Add to selected processes
-                System.out.println("SELECTED PROCESS");
             } else {
                 selectedProcesses.remove(newRow.process); // Remove from selected processes
-                System.out.println("DESELECTED PROCESS");
             }
         });
         newRow.selectButton.setTooltip(new Tooltip("Select this process"));
         processContainer.getChildren().add(newRow);
         updateColoumLines();
-        System.out.println("ADDED PROCESS " + processContainer.getChildren().size());
 
         return newRow;
     }
@@ -422,7 +421,7 @@ public class FrontendController {
         try {
             contents = ByteBuffer.wrap(Files.readAllBytes(file.toPath()));
         } catch (IOException e) {
-            System.out.println("FAILED TO READ FROM PROJECT DATA FILE");
+            System.err.println("FAILED TO READ FROM PROJECT DATA FILE");
             e.printStackTrace();
         }
 
@@ -442,9 +441,6 @@ public class FrontendController {
             updateRecentProjects(file.getAbsolutePath());
             Scheduler.Scheduler().projectName = projectName.toString();
             int processes = contents.getInt();
-            //TODO(Ray): Extract and unit test
-            // Deserialise proceess data
-
             int currentProcess = 0;
 
             while (contents.hasRemaining()) {
