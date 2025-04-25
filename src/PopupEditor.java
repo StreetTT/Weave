@@ -6,6 +6,8 @@ import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+
+import java.awt.*;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -13,8 +15,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PopupEditor {
-    private boolean showing;
-    private Stage currStage;
+    public boolean showing;
+    public Stage currStage;
     private Block block;
     private CodeArea codeArea;
     private double lastX = -1;
@@ -92,8 +94,8 @@ public class PopupEditor {
             this.codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
             this.codeArea.replaceText(0, 0, this.block.fileContents.toString());
 
-            //FIXME(Ray): Syntax highlighting doesn't immediately kick in, it requires you to update the CodeArea for some reason
 
+            codeArea.setStyleSpans(0, computeHighlighting(codeArea.getText()));
             codeArea.multiPlainChanges()
                    .successionEnds(Duration.ofMillis(30)) // 30ms delay
                    .subscribe(ignore -> codeArea.setStyleSpans(0, computeHighlighting(codeArea.getText())));
@@ -139,11 +141,12 @@ public class PopupEditor {
             matcher.group("DECORATOR") != null ? "decorator" :
             matcher.group("METHOD") != null ? "method" :
             null;
-            spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
+
+            spansBuilder.add(Collections.singleton("plainText"), matcher.start() - lastKwEnd);
             spansBuilder.add(Collections.singleton(styleClass), matcher.end() - matcher.start());
             lastKwEnd = matcher.end();
         }
-        spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
+        spansBuilder.add(Collections.singleton("plainText"), text.length() - lastKwEnd);
         
         return spansBuilder.create();
     }
