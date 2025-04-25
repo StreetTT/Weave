@@ -43,7 +43,6 @@ public class ProcessRow extends HBox {
         roundedContainer.setSpacing(10);
         roundedContainer.setPadding(new Insets(15));
         roundedContainer.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(roundedContainer, Priority.ALWAYS);
 
 
 
@@ -106,8 +105,7 @@ public class ProcessRow extends HBox {
         });
         processName.setMinWidth(200);
 
-        //set init style
-        handleSelect();
+
 
         processName.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
@@ -118,27 +116,38 @@ public class ProcessRow extends HBox {
         //row of processes inside the rectangle
         this.gridPaneRow = new GridPaneRow(process);
 
+        // Wrap the GridPaneRow in an HBox
         HBox blockWrapper = new HBox(this.gridPaneRow);
         blockWrapper.setAlignment(Pos.CENTER_LEFT);
+        // *** ADD THIS LINE to prevent the wrapper from growing horizontally ***
+        blockWrapper.setMaxWidth(Region.USE_PREF_SIZE);
 
+        // Content HBox containing name and block wrapper
         HBox contentBox = new HBox();
         contentBox.setSpacing(20);
         contentBox.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(processName, Priority.SOMETIMES);
+
         contentBox.getChildren().addAll(processName, blockWrapper);
 
         VBox.setVgrow(contentBox, Priority.ALWAYS);
         //put all of the objects together
         roundedContainer.getChildren().addAll(topBar, contentBox);
         this.getChildren().add(roundedContainer);
+
+
+
+        //set init style
+        handleSelect();
     }
 
     public void setStatus(byte status){
         final int PROCESS_FINISHED = 2;
         final int PROCESS_ERROR = 3;
 
-        // Remove previous status styles first
+
         processName.getStyleClass().removeAll("process-name-field-success", "process-name-field-error");
-        // Ensure base style is always present
+
         if (!processName.getStyleClass().contains("process-name-field")) {
             processName.getStyleClass().add("process-name-field");
         }
@@ -154,7 +163,7 @@ public class ProcessRow extends HBox {
                 processName.getStyleClass().add("process-name-field-error");
                 break;
             default:
-                // No additional style class needed, base style is sufficient
+
                 break;
         }
 
