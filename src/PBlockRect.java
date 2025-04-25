@@ -44,20 +44,30 @@ public class PBlockRect extends Rectangle implements Cloneable {
     }
 
     private void handleClick(MouseEvent event) {
-        System.out.println("MOUSE CLICKED");
         if (event.getClickCount() == 2) {
             if (this.block != null) {
                 if (this.editor == null) {
                     this.editor = new PopupEditor(this.block);
                 }
+
                 this.editor.showPopup();
             } else {
                 activateBlock();
                 if (this.editor == null) {
                     this.editor = new PopupEditor(this.block);
-                 }
-                 this.editor.showPopup();
+                }
+                this.editor.showPopup();
             }
+        }
+
+        //DELET
+        if (event.isAltDown()) {
+            this.block = null;
+            this.editor = null;
+            this.process.removeBlock(this.pos);
+            this.getStyleClass().remove("active-block");
+            this.getStyleClass().add("p-block-rect-placeholder");
+            this.setFill(null);
         }
     }
 

@@ -23,7 +23,6 @@ public class GridPaneRow extends GridPane {
 
     private int initialCol;
     private PBlockRect dragRect; // for drag and drop
-    private PBlockRect selectedRect; // for drag and drop
     private long clickStartTime;
 
 
@@ -123,18 +122,6 @@ public class GridPaneRow extends GridPane {
                             this.process.swapBlocks(initialCol, newCol);
                         }
                     }
-
-                }
-
-                // change the selected rect or deselect the current selectedRect
-                PBlockRect oldSelectedRect = selectedRect;
-                if (oldSelectedRect != dragRect) {
-                    selectedRect = dragRect;
-                    // magical css style that will give our rectangle a border
-                    selectedRect.setStyle("-fx-stroke: black; -fx-stroke-width: 2;");
-                } else if (oldSelectedRect != null) {
-                    selectedRect = null;
-                    oldSelectedRect.setStyle("");
                 }
             }
         }

@@ -133,8 +133,9 @@ JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReaderThreadStop(JNIEnv *env, jobjec
         do {
                 ok = reader_read_data(&READER);
                 if (GetLastError() == ERROR_BROKEN_PIPE) {
-                        fprintf(stderr, "FINISHED READING\n");
+                    break;
                 }
+
         } while (ok);
 
         const char end_marker[] = ">>>>>>>>>>>>\n";
@@ -361,7 +362,6 @@ JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReaderThreadStart(JNIEnv *env, jobje
 JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReaderThreadStop(JNIEnv *env, jobject obj) {
         assert(READER.started == TRUE);
         atomic_exchange(&READER.started, FALSE);
-        fprintf(stderr, "ATTEMPTING FINISHED READING\n");
         while (READER.working == TRUE) {
                 syscall(SYS_futex, &READER.working, FUTEX_WAIT_PRIVATE, TRUE, NULL, NULL, 0);
         }
@@ -370,11 +370,9 @@ JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReaderThreadStop(JNIEnv *env, jobjec
 
         fcntl(READER.pipe_read_handle, F_SETFL, fcntl(READER.pipe_read_handle, F_GETFL) & ~O_NONBLOCK); // set blocking again just incase
         int ok;
-        fprintf(stderr, "ATTEMPTING FINISHED READING\n");
         do {
                 ok = reader_read_data(&READER);
         } while (ok);
-        fprintf(stderr, "FINISHED READING\n");
 
         const char end_marker[] = ">>>>>>>>>>>>\n";
         for (const char *c = end_marker; *c != '\0'; ++c) {
@@ -386,12 +384,8 @@ JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReaderThreadStop(JNIEnv *env, jobjec
 }
 
 sem_t *pid_to_mutex(void *mutex_arr, int pid) {
-        fprintf(stderr, "before assert");
         assert(pid != 0); // if this fires something has gone very very wrong
-        fprintf(stderr, "after assert\n");
-        fprintf(stderr, "%d", pid);
         sem_t *result = MUTEX_ARRAY + (pid - 1);
-        fprintf(stderr, "got result\n");
 
         return result;
 }
@@ -415,8 +409,6 @@ JNIEXPORT void JNICALL Java_WeaveNativeImpl_Init(JNIEnv *env, jobject obj) {
                 }
 
                 MUTEX_ARRAY = (sem_t *)MAPPED_FILE;
-                fprintf(stderr, "MUTEX_ARRAY: %p\n", MUTEX_ARRAY);
-                fprintf(stderr, "sem_t size: %lu\n", sizeof(sem_t));
                 for (int i = 0; i < MAX_PROCESSES; ++i) {
                         sem_init(MUTEX_ARRAY + i, 1, 1);
                 }
@@ -465,7 +457,6 @@ JNIEXPORT void JNICALL Java_WeaveNativeImpl_DeInit(JNIEnv *env, jobject obj) {
 }
 
 JNIEXPORT void JNICALL Java_WeaveNativeImpl_WaitForProcess(JNIEnv *env, jobject obj, jint pid) {
-        fprintf(stderr, "Waitig for sem\n");
         if (sem_wait(pid_to_mutex(MUTEX_ARRAY, pid)) == -1) {
             fprintf(stderr, "failed waiting for sem\n");
         }
@@ -479,7 +470,6 @@ JNIEXPORT void JNICALL Java_WeaveNativeImpl_ReleaseProcess(JNIEnv *env, jobject 
 
 JNIEXPORT jlong JNICALL Java_WeaveNativeImpl_CreatePythonProcess(JNIEnv *env, jobject obj, jstring filename) {
         const char *c_filename = (*env)->GetStringUTFChars(env, filename, 0);
-        fprintf(stderr, "%s\n", c_filename);
 
         pid_t pid = fork();
         if (pid == -1)  {
@@ -490,7 +480,6 @@ JNIEXPORT jlong JNICALL Java_WeaveNativeImpl_CreatePythonProcess(JNIEnv *env, jo
         if (pid == 0) {
             char fd_string[10];
             snprintf(fd_string, sizeof(fd_string), "%d", FILE_HANDLE);
-            fprintf(stderr, "fdstring: %s\n", fd_string);
 
             //Redirect stdout
             close(READER.pipe_read_handle);
@@ -520,8 +509,6 @@ JNIEXPORT jboolean JNICALL Java_WeaveNativeImpl_isProcessAlive(JNIEnv *env, jobj
 }
 
 EXPORT void python_mutex_lock(void *mutex) {
-        fprintf(stderr, "converting mut\n");
-        fprintf(stderr, "mutex: %p\n", mutex);
         sem_wait((sem_t *)mutex);
 }
 

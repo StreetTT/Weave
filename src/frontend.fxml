@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
-<?import com.jfoenix.controls.*?>
 
-<?import javafx.geometry.Insets?>
-<AnchorPane styleClass="main-anchor-pane" prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="FrontendController">
+<AnchorPane prefHeight="700.0" prefWidth="1000.0" styleClass="main-anchor-pane" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="FrontendController">
     <children>
         <VBox spacing="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <children>
@@ -14,7 +13,7 @@
                     <menus>
                         <Menu mnemonicParsing="false" text="File">
                             <items>
-                                <MenuItem mnemonicParsing="false" text="Add new python process" onAction="#handleAddProcessRow"/>
+                                <MenuItem mnemonicParsing="false" onAction="#handleAddProcessRow" text="Add new python process" />
                                 <MenuItem mnemonicParsing="false" onAction="#saveProject" text="Save project" />
                                 <MenuItem mnemonicParsing="false" onAction="#saveProjectAs" text="Save project as" />
                                 <MenuItem mnemonicParsing="false" onAction="#openProject" text="Open project" />
@@ -22,7 +21,6 @@
                                     <items>
                                     </items>
                                 </Menu>
-                                <MenuItem mnemonicParsing="false" text="Export current project" />
                             </items>
                         </Menu>
                         <Menu mnemonicParsing="false" text="Run">
@@ -34,9 +32,9 @@
                     </menus>
                 </MenuBar>
 
-                <HBox styleClass="tool-bar" alignment="CENTER_LEFT" spacing="20.0">
+                <HBox alignment="CENTER_LEFT" spacing="20.0" styleClass="tool-bar">
                     <padding>
-                        <Insets top="4.0" right="10.0" bottom="4.0" left="10.0" />
+                        <Insets bottom="4.0" left="10.0" right="10.0" top="4.0" />
                     </padding>
                     <children>
                         <VBox alignment="CENTER" spacing="2.0">
@@ -45,23 +43,23 @@
                             </padding>
                             <children>
                                 <JFXCheckBox fx:id="selectAllCheckBox" text="" />
-                                <Label text="Select All" styleClass="tool-bar-label"/>
+                                <Label styleClass="tool-bar-label" text="Select All" />
                             </children>
                             <HBox.margin>
                                 <Insets left="20.0" />
                             </HBox.margin>
                         </VBox>
 
-                        <JFXButton fx:id="addProcessButton" onAction="#handleAddProcessRow" buttonType="RAISED" contentDisplay="TEXT_ONLY" prefHeight="40.0" prefWidth="60.0" styleClass="tool-bar-button" text="+">
+                        <JFXButton fx:id="addProcessButton" buttonType="RAISED" contentDisplay="TEXT_ONLY" onAction="#handleAddProcessRow" prefHeight="40.0" prefWidth="60.0" styleClass="tool-bar-button" text="+">
                             <HBox.margin>
                                 <Insets left="30.0" /> </HBox.margin>
                         </JFXButton>
 
                         <Region HBox.hgrow="ALWAYS" />
 
-                        <JFXButton fx:id="runAllTopButton" onAction="#runSelectedProcesses"  buttonType="RAISED" contentDisplay="TEXT_ONLY" prefHeight="40.0" prefWidth="60.0" styleClass="tool-bar-button" text="▶">
+                        <JFXButton fx:id="runAllTopButton" buttonType="RAISED" contentDisplay="TEXT_ONLY" onAction="#runSelectedProcesses" prefHeight="40.0" prefWidth="60.0" styleClass="tool-bar-button" text="▶">
                             <HBox.margin>
-                                <Insets right ="15.0"/>
+                                <Insets right="15.0" />
                             </HBox.margin>
                         </JFXButton>
                     </children>
@@ -72,26 +70,26 @@
                     <content>
                         <AnchorPane>
                             <children>
-                                <VBox fx:id="processContainer" spacing="10.0" AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                                <VBox fx:id="processContainer" spacing="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                     <padding>
                                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                                     </padding>
                                 </VBox>
-                                <Pane fx:id="columnOverlayPane" mouseTransparent="true" AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                                <Pane fx:id="columnOverlayPane" mouseTransparent="true" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                             </children>
                         </AnchorPane>
                     </content>
                 </ScrollPane>
 
-                <StackPane styleClass="output-container" VBox.vgrow="NEVER" minHeight="219.0" prefHeight="219.0" maxHeight="219.0">
+                <StackPane maxHeight="219.0" minHeight="219.0" prefHeight="219.0" styleClass="output-container" VBox.vgrow="NEVER">
                     <VBox.margin>
                     <Insets top="5.0" />
                     </VBox.margin>
                     <padding>
-                        <Insets top="10.0" right="10.0" bottom="10.0" left="10.0" />
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                     </padding>
                     <children>
-                        <TextArea fx:id="outputTextArea" editable="false" wrapText="true" styleClass="output-terminal" text=">Output will appear here..."/>
+                        <TextArea fx:id="outputTextArea" editable="false" styleClass="output-terminal" text="&gt;Output will appear here..." wrapText="true" />
                     </children>
                 </StackPane>
 
