@@ -206,16 +206,15 @@
 
 
 .active-block {
-
-    -fx-fill: -weave-tertiary-bg;
+    -fx-fill: #224f75;
     -fx-stroke: -weave-subtle-border-color;
     -fx-stroke-dash-array: none;
     -fx-stroke-width: 1px;
 }
 
-
 .active-block:hover {
-    -fx-stroke: -weave-accent-color;
+    -fx-fill: derive(#224f75, -10%);
+    -fx-stroke: -weave-text-color;
     -fx-stroke-width: 1.5px;
 }
 
