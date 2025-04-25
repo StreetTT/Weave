@@ -44,7 +44,7 @@ def __WEAVE_PROCESS_START(pid):
     if platform == "win32":
         MUTEX_SIZE = 8
         WEAVE_IPCMEM = mmap.mmap(-1, MUTEX_SIZE*_MAX_PROCESSES + _MAX_PROCESSES, "WEAVE_SHARED_IPC", access=mmap.ACCESS_WRITE)
-        LIB = ctypes.CDLL("./lib/weave_native.dll")
+        LIB = ctypes.CDLL("./weave_native.dll")
     elif platform == "linux":
         MUTEX_SIZE = 32
         fd = os.getenv("WEAVE_SHARED_MAP")

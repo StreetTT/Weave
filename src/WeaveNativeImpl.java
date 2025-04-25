@@ -1,3 +1,5 @@
+import java.io.File;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 
 //TODO(Ray): Obfuscate the sharedmemroy name
@@ -126,9 +128,22 @@ public class WeaveNativeImpl implements WeaveNative {
     static {
         String os = System.getProperty("os.name");
         if (os.contains("Windows")) {
-            System.loadLibrary("./lib/weave_native");
+            try {
+                File exeDir = new File(WeaveNativeImpl.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
+                System.load(exeDir.getAbsolutePath() + "/weave_native.dll");
+            } catch (URISyntaxException e) {
+                System.err.println("Unable to find executable directory");
+                e.printStackTrace();
+            }
         } else if (os.contains("inux")) {
-            System.load(System.getProperty("user.dir") + "/lib/weave_native.so");
+            try {
+                File exeDir = new File(WeaveNativeImpl.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
+                System.load(exeDir + "/weave_native.so");
+            } catch (URISyntaxException e) {
+                System.err.println("Unable to find executable directory");
+                e.printStackTrace();
+            }
+
         }
     }
 }

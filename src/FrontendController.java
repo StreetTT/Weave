@@ -595,8 +595,7 @@ public class FrontendController {
         );
 
         // Set initial directory
-        String defaultPath = Scheduler.Scheduler().projectDir;
-        fileChooser.setInitialDirectory(new File(defaultPath));
+        fileChooser.setInitialDirectory(new File(System.getProperty("user.dir")));
 
         // Show open dialog
         File selectedFile = fileChooser.showOpenDialog(new Stage());

@@ -10,6 +10,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import java.io.InputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.ArrayList;
 
@@ -24,10 +25,10 @@ public class Frontend extends Application {
 
         Parent root;
         try {
-            root = FXMLLoader.load(getClass().getResource("frontend.fxml"));
-        } catch (IOException e) {
+            root = FXMLLoader.load(getClass().getResource("/frontend.fxml"));
+        } catch (IOException io) {
             System.err.println("Counln't find the fxml file");
-            e.printStackTrace();
+            io.printStackTrace();
             return;
         }
 
@@ -35,14 +36,14 @@ public class Frontend extends Application {
         Scene scene = new Scene(root, 1280, 720);
 
         //app icon mb put in try catch
-        Image appIcon = new Image(getClass().getResourceAsStream("/assets/W.png"));
+        Image appIcon = new Image(getClass().getResourceAsStream("/W.png"));
         primaryStage.getIcons().add(appIcon);
 
 
 
 
         //css for frontend
-        scene.getStylesheets().add(getClass().getResource("python-keywords.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getResource("/python-keywords.css").toExternalForm());
 
 
         primaryStage.setScene(scene);
