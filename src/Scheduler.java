@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.Optional;
 import javafx.scene.control.TextInputDialog;
 
+
+
+//manages the saving, loading, writing, and running weave processes
 public class Scheduler {
     private static Scheduler singleton_ref = null;
     private static final String PROCESS_FILE_HEADER = "import weave_shared as __WEAVE\n";
@@ -34,44 +37,59 @@ public class Scheduler {
         return singleton_ref;
     };
 
+
+    //reads the content of a specific python process file from disk
     public StringBuilder getProcessFileContent(int process) {
+        //constructs the expected filename
         String filename = this.projectName + "_PROCESS_" + process + ".py";
         String fileSeperator = FileSystems.getDefault().getSeparator();
 
+
+        //constructs full path
         String fullFilepath = this.projectDir + fileSeperator + filename;
 
         File file = new File(fullFilepath);
         Path path = Paths.get(fullFilepath);
 
         try {
-            return new StringBuilder(Files.readString(path)); // Read Entire File
+            //reads the entire file content
+            return new StringBuilder(Files.readString(path));
         } catch (IOException e) {
+            //returns empty if file not found or error occours
             return new StringBuilder();
         }
     }
+
+    //generates the python filename based on the process index
     private String getFilenameFromIdx(int idx) {
         return this.projectName + "_PROCESS_" + (idx + 1) + ".py";
     }
 
+
+
+    //generates the python function call string based on the block index
     private String getBlockFuctionStringFromIdx(int i) {
         return FUNCTION_HEADER + (i) + "()";
     }
 
+    //gets the process id used by native code, basied on the list index
     private int getPIDFromIDX(int i) {
         return i + 1;
     }
 
+
+    //forces the user to enter a project name using a dialog box
     private String forceProjectName() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Project Name");
         dialog.setHeaderText("You must name your project first.");
         dialog.setContentText("Project name:");
         dialog.getEditor().setText("untitledProject");
-        
-        // Show dialog and wait for response
+
+        //shows the dialog and waits for user input
         Optional<String> result = dialog.showAndWait();
-        
-        // Update project name if user entered one
+
+        //updates the project name if the user entered something valid
         if (result.isPresent() && !result.get().trim().isEmpty()) {
             Scheduler.Scheduler().projectName = result.get().trim();
             return Scheduler.Scheduler().projectName;
@@ -79,28 +97,31 @@ public class Scheduler {
         
         return null;
     }
-    
+
+
+    //writes the python code for all processes to disk in the specified subfolde
     public boolean writeProcessesToDisk(ArrayList<WeaveProcess> processes, String folder) {
-        // Force the user to name the project if it hasn't been done already
+        //makes sure a project name is set, prompting if necessary
         while (Scheduler.Scheduler().projectName == null) {
             forceProjectName();
         }
 
-
+        //constructs the full directory path for the output files
         String dirpath = this.projectDir + "/" + folder;
 
 
         try {
-            Files.createDirectories(Paths.get(dirpath)); // create one if it doens't already exist
+            //creates the output directory if it doesn't exist
+            Files.createDirectories(Paths.get(dirpath));
         }  catch (IOException e) {
             System.err.println("Creating process directory failed");
             e.printStackTrace();
             return false;
         }
-
+        //creates the lib subdirectory for native libraries
         String libpath = dirpath + "/lib";
         try {
-        Files.createDirectories(Paths.get(libpath)); // create one if it doens't already exist
+        Files.createDirectories(Paths.get(libpath));
         } catch (IOException e) {
             System.err.println("Error creating lib directory");
             e.printStackTrace();
@@ -108,6 +129,7 @@ public class Scheduler {
         }
 
         try {
+            //copies the necessary runtime files (shared python module, native libs)
             Files.copy(Paths.get("./weave_shared.py"), Paths.get(dirpath + "/weave_shared.py"), StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
             Files.copy(Paths.get("./lib/weave_native.dll"), Paths.get(libpath + "/weave_native.dll"), StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
             Files.copy(Paths.get("./lib/weave_native.so"), Paths.get(libpath + "/weave_native.so"), StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
@@ -117,66 +139,77 @@ public class Scheduler {
             return false;
         }
 
+
+        //loops through each process to generate its python file
         for (int processIdx = 0; processIdx < processes.size(); ++processIdx) {
             //output the headers
             WeaveProcess process = processes.get(processIdx);
             StringBuilder fullFileString = new StringBuilder();
+
+            //adds the standard header and the process start call
+
             fullFileString.append(PROCESS_FILE_HEADER);
             fullFileString.append("__WEAVE.__WEAVE_PROCESS_START(" + getPIDFromIDX(processIdx) + ")\n");
             String filename = this.getFilenameFromIdx(processIdx);
 
+
+            //constructs the full path for this process file
             String fullFilepath = dirpath + "/" + filename;
             Path path = Paths.get(fullFilepath);
 
-            // output one function per block
+            //generates one python function for each potential block slot
             for (int blockIdx = 0; blockIdx < process.largestIndex+1; ++blockIdx) {
                 Block block = process.blocks[blockIdx];
 
-                //NOTE(Ray): Must surround the entire code in a try finally block, without this, if it encounters an exception
-                // it will terminate and not Release the mutex, creating a deadlock
+                //starts the function definition with a try block for error handling
 
                 fullFileString.append("def " + getBlockFuctionStringFromIdx(blockIdx) + ":\n    try:\n        ");
                 if (block != null) {
                     StringBuilder blockContentStr = block.fileContents;
+                    //iterates through the block's code characters
                     for (int charIdx = 0; charIdx < blockContentStr.length(); ++charIdx) {
                         char c = blockContentStr.charAt(charIdx);
+                        //converts tabs to standard indentation
                         if (c == '\t') {
-                            fullFileString.append(INDENT);  // convert tabs to spaces
+                            fullFileString.append(INDENT);
                             continue;
                         }
 
-                        // ignore whitespace
+                        //ignores carriage return and form feed characters
                         if (c == '\r' || c == '\f') {
                             continue;
                         }
-
+                        //appends the character
                         fullFileString.append(c);
+                        //adds indentation after newlines
                         if (c == '\n') {
-                            fullFileString.append(INDENT); // indent after newlines
+                            fullFileString.append(INDENT);
                         }
                     }
                 }
 
-                // python doesn't allow empty functions appending 'pass' will keep python happy
+                //adds 'pass' if the block was empty or null to make python happy
                 fullFileString.append("\n" + INDENT + "pass");
                 fullFileString.append("\n\n");
 
-                // release the mutex even if an exception occurs
+                //adds the except block to catch errors, signal error state, and re-raise
                 fullFileString.append("    except Exception as e:\n" + INDENT + "__WEAVE.__WEAVE_PROCESS_END_ERROR()\n" + INDENT + "raise e\n\n");
                 if (blockIdx != process.largestIndex) {
                     fullFileString.append("    __WEAVE.__WEAVE_WAIT_TILL_SCHEDULED()\n");
+                    //adds the process end call for the last block
                 } else {
                     fullFileString.append("    __WEAVE.__WEAVE_PROCESS_END()\n");
                 }
             }
 
-            // output all function calls
+            //writes the function calls in sequence
             for (int blockIdx = 0; blockIdx < process.largestIndex; ++blockIdx) {
                 fullFileString.append(getBlockFuctionStringFromIdx(blockIdx) + "\n");
             }
-
+            //writes the last function call
             fullFileString.append(getBlockFuctionStringFromIdx(process.largestIndex) + "\n");
             try {
+                //write the generated python code to the file
                 Files.write(path, fullFileString.toString().getBytes(),
                         StandardOpenOption.WRITE,
                         StandardOpenOption.CREATE,
@@ -193,13 +226,14 @@ public class Scheduler {
     }
 
 
-    // TODO(Ray): Can test but probably not using JUnit
+    //runs the specific process using native weave layer
     public byte[] runProcesses(ArrayList<WeaveProcess> processes) {
         final String outputDir = "outFiles";
         this.writeProcessesToDisk(processes, outputDir);
         WeaveNative wn = WeaveNativeFactory.get();
         int[] pids = new int[processes.size()];
 
+        //prepares the native layer to wait for each process
         for (int i = 0; i < processes.size(); ++i) {
             int pid = getPIDFromIDX(i);
             wn.WaitForProcess(pid);
@@ -238,7 +272,7 @@ public class Scheduler {
         return results;
     }
 
-    //TODO(Ray): 100% can unit test this function
+    //saves the project structure (process names, block layout) to a .wve file
     public boolean saveProjectFile(ArrayList<WeaveProcess> processes) {
         Path path = Paths.get(this.projectDir + "/" + this.projectName + ".wve");
         // should be enough for all proceses and the headers
@@ -278,7 +312,6 @@ public class Scheduler {
             }
         }
 
-        //TODO(Ray): CHKSUM
 
         try {
             Files.write(path, bytesToWrite.array());

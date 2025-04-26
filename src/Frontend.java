@@ -13,17 +13,21 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.ArrayList;
 
-//TODO: Replace almost every single system.err.print and exception catch, with a GUI message box to show to the user
 
+//main class for the javafx frontend application
 public class Frontend extends Application {
 
+    //static list holding all the current weave processes in the project
     static public ArrayList<WeaveProcess> processes = new ArrayList<>();
 
+
+    //entry point for the javafx application
     @Override
     public void start(Stage primaryStage) {
 
         Parent root;
         try {
+            //loads the ui layout from the fxml file
             root = FXMLLoader.load(getClass().getResource("frontend.fxml"));
         } catch (IOException e) {
             System.err.println("Counln't find the fxml file");
@@ -31,17 +35,19 @@ public class Frontend extends Application {
             return;
         }
 
+        //sets the window title
+
         primaryStage.setTitle("Weave");
         Scene scene = new Scene(root, 1280, 720);
 
-        //app icon mb put in try catch
+        //loads and sets the application icon
         Image appIcon = new Image(getClass().getResourceAsStream("/assets/W.png"));
         primaryStage.getIcons().add(appIcon);
 
 
 
 
-        //css for frontend
+        //loads the css stylesheet for syntax highlighting and other styles
         scene.getStylesheets().add(getClass().getResource("python-keywords.css").toExternalForm());
 
 
@@ -63,12 +69,22 @@ public class Frontend extends Application {
         Scheduler.Scheduler(); // init this stuff last
     }
 
+
+
+    //called when the user attempts to close the application window
     public void closeFunction(WindowEvent e) {
+        //prompts the user to save changes if necessary
         prematureExit(e);
         WeaveNativeFactory.get().DeInit();
     }
 
+
+
+
+    //handles the save confirmation dialog when exiting
     private void prematureExit(WindowEvent e) {
+
+        //flag to track save status
         boolean successfulSave = false;
         while (!successfulSave) {
             if (!successfulSave) {
@@ -88,7 +104,7 @@ public class Frontend extends Application {
                 if (result.get() == saveButton) {
                     successfulSave = Scheduler.Scheduler().writeProcessesToDisk(processes, "sourceFiles");
                     if (!successfulSave) {
-                        e.consume(); // Don't close if save failed
+                        e.consume();
                     }
                 } else if (result.get() == dontSaveButton) {
                     successfulSave = true;
@@ -100,8 +116,13 @@ public class Frontend extends Application {
         }
     }
 
+
+
+
+    //main entry point of the java program
     public static void main(String[] args) {
-        Scheduler scheduler = Scheduler.Scheduler(); // Please always do this at application start
+        //initializes the scheduler singleton early
+        Scheduler scheduler = Scheduler.Scheduler();
 
         // init shared memory
         WeaveNativeFactory.get();

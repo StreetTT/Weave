@@ -31,6 +31,8 @@ public class ProcessRow extends HBox {
         this.onBlockAddedCallback = callback;
     }
 
+
+    //represents a single row in the ui, containing process info and its blocks
     public ProcessRow(WeaveProcess p) {
         process = p;
         //styling for row

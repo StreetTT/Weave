@@ -1,5 +1,6 @@
 import java.nio.ByteBuffer;
 
+//a placeholder implementation of WeaveNative for unsupported platforms or testing
 public class WeaveNativeStub implements WeaveNative {
     public WeaveNativeStub() {}
     public void DeInit() {}

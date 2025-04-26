@@ -58,7 +58,7 @@ public class FrontendController {
     private List<String> recentProjects = new ArrayList<>();
     @FXML public Menu fileMenu;
 
-
+    //controls the main ui elements and interactions defined in frontend.fxml
     public void initialize() {
         showStartupDialog();
         loadRecentProjects();
@@ -254,28 +254,31 @@ public class FrontendController {
             return;
         }
 
-        // fins max number of coloums needed from longest proces row
+        //finds the maximum number of columns currently displayed across all rows
         int maxCols = 0;
+        //gets a reference to the first row's gridpane for positioning calculations
         GridPaneRow firstGridPaneForPositioning = null;
-
+        //iterates through the process rows
         for (Node node : processContainer.getChildren()) {
-            // Ensure the node is a ProcessRow before casting
+
             if (node instanceof ProcessRow) {
                 ProcessRow currentRow = (ProcessRow) node;
                 GridPaneRow currentGridPane = currentRow.getGridPaneRow();
 
                 if (currentGridPane != null) {
+                    //stores the first gridpane found
                     if (firstGridPaneForPositioning == null) {
-                        // Capture the first valid grid pane we find
+
                         firstGridPaneForPositioning = currentGridPane;
                     }
-
+                    //updates the maximum column count
                     maxCols = Math.max(maxCols, currentGridPane.getColumnConstraints().size());
                 }
             }
         }
 
-
+        //if no valid gridpane was found or no columns exist, exits
+        //schedules a retry later, as layout might not be complete yet
         if (firstGridPaneForPositioning == null || maxCols == 0) {
             Platform.runLater(this::updateColoumLines); // Defer execution
             return;
@@ -283,55 +286,65 @@ public class FrontendController {
 
 
 
-
+        //gets the first process row to calculate the top starting point of the lines
         Node firstChild = processContainer.getChildren().get(0);
-
+        //converts the top-left corner of the first row to scene coordinates
         Point2D firstRowTopLeftInScene = firstChild.localToScene(0, 0);
 
+
+        //exits if scene coordinates are not available yet (layout incomplete)
         if (firstRowTopLeftInScene == null || columnOverlayPane.getScene() == null || columnOverlayPane.getScene().getWindow() == null) {
             Platform.runLater(this::updateColoumLines);
             return;
         }
+        //converts scene coordinates to the local coordinate system of the overlay pane
         Point2D firstRowTopLeftInOverlay = columnOverlayPane.sceneToLocal(firstRowTopLeftInScene);
         if(firstRowTopLeftInOverlay == null) {
             Platform.runLater(this::updateColoumLines);
             return;
         }
 
-
+        //calculates the starting y-coordinate for the lines to match on process row
         double startY = firstRowTopLeftInOverlay.getY() + 10.5;
 
-
+        //calculates the ending y-coordinate based on the bounds of the process container
         Bounds containerBoundsInParent = processContainer.getBoundsInParent();
         double endY = containerBoundsInParent.getMaxY() + 5;
 
-
+        //exits if the calculated height is invalid or zero
         if (startY >= endY) {
             return;
         }
 
-
+        //calculates the starting x-coordinate for the grid within the overlay pane
         Bounds gridBoundsInScene = firstGridPaneForPositioning.localToScene(firstGridPaneForPositioning.getBoundsInLocal());
+        //exits if grid bounds are not ready
         if (gridBoundsInScene == null) {
             Platform.runLater(this::updateColoumLines);
             return;
         }
+
+
         Point2D gridTopLeftInOverlay = columnOverlayPane.sceneToLocal(gridBoundsInScene.getMinX(), gridBoundsInScene.getMinY());
 
+        //exits if conversion fails
         if (gridTopLeftInOverlay == null) {
             return;
         }
+
+        //the starting x position of the first column's content area
         double gridPaneStartXInOverlay = gridTopLeftInOverlay.getX();
 
-
+        //gets the fixed width of each cell including padding
         final double cellWidth = GridPaneRow.CELL_SIZE_WITH_PADDING;
 
-
+        //draws a vertical line between each column (starting after the first column)
         for (int i = 1; i < maxCols; i++) { 
 
             final double PADDING_OFFSET = (GridPaneRow.CELL_SIZE_WITH_PADDING - PBlockRect.BLOCK_WIDTH) / 2.0;
             double lineX = gridPaneStartXInOverlay + (i * cellWidth) - PADDING_OFFSET;
 
+            //creates the line object
             Line line = new Line(lineX, startY, lineX, endY);
             line.setStroke(Color.GRAY);
             line.setStrokeWidth(1);
@@ -342,6 +355,8 @@ public class FrontendController {
 
     }
 
+
+    //updates the output terminal text area with the latest output from native processes
     public void updateOutputTerminal() {
         //raw output string from the native layer
         String rawOutputString = StandardCharsets.UTF_8.decode(WeaveNativeFactory.get().GetProcessesOutput()).toString(); //
@@ -359,6 +374,7 @@ public class FrontendController {
         }
     }
 
+    //updates the status indicator (e.g., color) for multiple process rows
     public void setAllProcessesStatus(ArrayList<WeaveProcess> processes, byte[] processStatusBytes) {
         for (int i = 0; i < processes.size(); ++i)  {
             WeaveProcess process = Frontend.processes.get(i);
@@ -366,38 +382,57 @@ public class FrontendController {
         }
     }
 
+    //runs a single specified process
     public void runSingleProcessTask(WeaveProcess processToRun){
+
+        //saves file
         Scheduler.Scheduler().saveProjectFile(Frontend.processes);
+        //writes the python files to disk
         Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
+        //creates a list containing only the process to run
         ArrayList<WeaveProcess> singleProcessList = new ArrayList<>();
+
         singleProcessList.add(processToRun);
+
         byte[] results = Scheduler.Scheduler().runProcesses(singleProcessList);
+        //updates the status indicators for the run process(es)
         setAllProcessesStatus(singleProcessList, results);
+
+        //updates the output terminal
         updateOutputTerminal();
     }
 
     public void runProcesses() {
-        //TODO: Prompt the user to save before running processes
+        //saves file
         Scheduler.Scheduler().saveProjectFile(Frontend.processes);
+
+        //writes the python files to disk
         Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
         byte[] results = Scheduler.Scheduler().runProcesses(Frontend.processes);
-
+        //updates the status indicators for the run process(es)
         setAllProcessesStatus(Frontend.processes, results);
         updateOutputTerminal();
     }
 
     public void runSelectedProcesses() {
+        //saves file
         Scheduler.Scheduler().saveProjectFile(Frontend.processes);
+        //writes the python files to disk
         Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
+
         byte[] results = Scheduler.Scheduler().runProcesses(this.selectedProcesses);
+
         updateOutputTerminal();
 
         setAllProcessesStatus(this.selectedProcesses, results);
     }
 
+    //handles the "Save As..." action
     public boolean saveProjectAs(){
+        //shows the directory chooser dialog to get a save location
         File folder = this.showSaveDialogBox();
         if (folder != null) {
+            //updates the scheduler's project directory
             Scheduler.Scheduler().projectDir = folder.toString();
             Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
             Scheduler.Scheduler().saveProjectFile(Frontend.processes);
@@ -407,6 +442,7 @@ public class FrontendController {
         }
     }
 
+    //handles the "Save" action (saves to the current project location)
     public boolean saveProject(){
         boolean ok = Scheduler.Scheduler().writeProcessesToDisk(Frontend.processes, "sourceFiles");
         ok |= Scheduler.Scheduler().saveProjectFile(Frontend.processes);
@@ -516,17 +552,23 @@ public class FrontendController {
         }
     }
 
+    //handles the "Open Project" action
     public boolean openProject() {
+        //shows the file chooser dialog to select a .wve file
         File file = this.showOpenDialogBox();
+
         if (file == null) {
+            //user cancelled the dialog
             return false;
         }
-
+        //loads the selected project file
         loadProject(file);
 
         return true;
     }
 
+
+    //populates the File -> Recent Projects menu with loaded paths
     private void populateRecentProjectsMenu() {
         fileMenu.getItems().clear();
 
@@ -537,6 +579,7 @@ public class FrontendController {
         }
     }
 
+    //opens a project given its full file path
     private void openProjectFromPath(String path) {
         File file = new File(path);
         if (file.exists()) {
@@ -553,31 +596,45 @@ public class FrontendController {
         }
     }
 
+    //updates the list of recent projects, adding the new path to the top
     private void updateRecentProjects(String path) {
+        //removes the path if it already exists (to move it to the top)
         recentProjects.remove(path);
+        //adds the path to the beginning of the list
         recentProjects.add(0, path);
 
+        //if the list exceeds the maximum size, removes the oldest entry
         if (recentProjects.size() > MAX_RECENT) {
             recentProjects = new ArrayList<>(recentProjects.subList(0, MAX_RECENT));
         }
 
+        //saves the updated list to preferences
         saveRecentProjects();
+        //updates the menu display
         populateRecentProjectsMenu();
     }
 
+
+
+    //saves the current list of recent projects to java preferences
     private void saveRecentProjects() {
+        //clears previous recent project entries in preferences
         for (int i = 0; i < MAX_RECENT; i++) {
             prefs.remove(RECENT_PROJECT_KEY + i);
         }
-
+        //saves the current list entries
         for (int i = 0; i < recentProjects.size(); i++) {
             prefs.put(RECENT_PROJECT_KEY + i, recentProjects.get(i));
         }
     }
 
+
+
+    //loads the list of recent projects from java preferences on startup
     private void loadRecentProjects() {
         recentProjects.clear();
         for (int i = 0; i < MAX_RECENT; i++) {
+            //retrieves the path stored at the key, or null if not found
             String path = prefs.get(RECENT_PROJECT_KEY + i, null);
             if (path != null) {
                 recentProjects.add(path);
@@ -585,11 +642,13 @@ public class FrontendController {
         }
     }
 
+
+    //shows the standard javafx file chooser dialog for opening .wve files
     private File showOpenDialogBox() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Weave Project");
 
-        // Only allow .wve files
+        //sets a filter to only show .wve files
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Weave Files", "*.wve")
         );
@@ -604,6 +663,8 @@ public class FrontendController {
         return selectedFile;
     }
 
+
+    //shows the standard javafx directory chooser dialog for saving projects
     private File showSaveDialogBox() {
         // Show save dialog box
         DirectoryChooser dirChooser = new DirectoryChooser();
