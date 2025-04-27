@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <project name="weave" default="compile">
-
     <!-- Properties -->
     <property name="build.dir" value="build"/>
     <property name="src.dir" value="src"/>
@@ -51,7 +50,7 @@
             <include name="**/*.java"/>
             <classpath>
                 <fileset dir="${javafx.lib.dir}" includes="*.jar"/>
-                <fileset dir="${lib.dir}" includes="shared_map.*"/>
+                <fileset dir="${lib.dir}" includes="weave_native.*"/>
 				<fileset dir="${javafx.lib.3rdParty}" includes="*.jar"/>
             </classpath>
         </javac>
@@ -180,5 +179,165 @@
         <move file="${src.dir}/WeaveNativeFactory.class" todir="./build"/>
         <move file="${src.dir}/WeaveNative.class" todir="./build"/>
         <move file="${src.dir}/WeaveNativeStub.class" todir="./build"/>
+    </target>
+
+    <target name="build-full-win" depends="compile-c-windows, compile">
+        <copy  todir="./build">
+            <fileset dir="./lib/win64/javafx-sdk-21.0.6/bin/"/>
+        </copy>
+        <copy  todir="./build">
+            <fileset dir="./lib/win64/javafx-sdk-21.0.6/lib/"/>
+        </copy>
+        <copy  todir="./build">
+            <fileset dir="./lib/3rd-party/"/>
+        </copy>
+        <copy  file="./src/frontend.fxml" todir="./build"/>
+        <copy file="./assets/W.png" todir="./build"/>
+        <mkdir dir="./weaveJar"/>
+        <jar destfile="weaveJar/weave.jar" basedir="./build">
+            <manifest>
+                <attribute name="Main-Class" value="Main"/>
+            </manifest>
+            <zipfileset dir="./build/"/>
+            <zipfileset src="./build/jfoenix-9.0.10.jar"/>
+            <zipfileset src="./build/reactfx-2.0-M5.jar"/>
+            <zipfileset src="./build/javafx.graphics.jar"/>
+            <zipfileset src="./build/richtextfx-0.11.2.jar"/>
+            <zipfileset src="./build/javafx-swt.jar"/>
+            <zipfileset src="./build/javafx.base.jar"/>
+            <zipfileset src="./build/javafx.controls.jar"/>
+            <zipfileset src="./build/javafx.fxml.jar"/>
+            <zipfileset src="./build/javafx.media.jar"/>
+            <zipfileset src="./build/javafx.swing.jar"/>
+            <zipfileset src="./build/javafx.web.jar"/>
+            <zipfileset src="./build/jfoenix-9.0.10.jar"/>
+            <zipfileset src="./build/undofx-2.1.1.jar"/>
+            <zipfileset src="./build/flowless-0.7.1.jar"/>
+            <zipfileset src="./build/wellbehavedfx-0.3.3.jar"/>
+            <zipfileset file="./build/api-ms-win-core-console-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-console-l1-2-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-datetime-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-debug-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-errorhandling-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-file-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-file-l1-2-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-file-l2-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-handle-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-heap-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-interlocked-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-libraryloader-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-localization-l1-2-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-memory-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-namedpipe-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-processenvironment-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-processthreads-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-processthreads-l1-1-1.dll"/>
+            <zipfileset file="./build/api-ms-win-core-profile-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-rtlsupport-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-string-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-synch-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-synch-l1-2-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-sysinfo-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-timezone-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-core-util-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-crt-conio-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-crt-convert-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-crt-environment-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-crt-filesystem-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-crt-heap-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-crt-locale-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-crt-math-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-crt-multibyte-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-crt-private-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-crt-process-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-crt-runtime-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-crt-stdio-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-crt-string-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-crt-time-l1-1-0.dll"/>
+            <zipfileset file="./build/api-ms-win-crt-utility-l1-1-0.dll"/>
+            <zipfileset file="./build/decora_sse.dll"/>
+            <zipfileset file="./build/fxplugins.dll"/>
+            <zipfileset file="./build/glass.dll"/>
+            <zipfileset file="./build/glib-lite.dll"/>
+            <zipfileset file="./build/gstreamer-lite.dll"/>
+            <zipfileset file="./build/javafx_font.dll"/>
+            <zipfileset file="./build/javafx_iio.dll"/>
+            <zipfileset file="./build/jfxmedia.dll"/>
+            <zipfileset file="./build/jfxwebkit.dll"/>
+            <zipfileset file="./build/msvcp140.dll"/>
+            <zipfileset file="./build/msvcp140_1.dll"/>
+            <zipfileset file="./build/msvcp140_2.dll"/>
+            <zipfileset file="./build/prism_common.dll"/>
+            <zipfileset file="./build/prism_d3d.dll"/>
+            <zipfileset file="./build/prism_sw.dll"/>
+            <zipfileset file="./build/ucrtbase.dll"/>
+            <zipfileset file="./build/vcruntime140.dll"/>
+            <zipfileset file="./build/vcruntime140_1.dll"/>
+        </jar>
+        <copy file="./lib/weave_native.dll" todir="./weaveJar"/>
+        <copy file="weave_shared.py" todir="./weaveJar"/>
+
+    </target>
+
+    <target name="build-full-linux" depends="compile-c-linux, compile">
+        <copy  todir="./build">
+        </copy>
+        <copy  todir="./build">
+            <fileset dir="./lib/linux64/javafx-sdk-21.0.6/lib/"/>
+        </copy>
+        <copy  todir="./build">
+            <fileset dir="./lib/3rd-party/"/>
+        </copy>
+        <copy  file="./src/frontend.fxml" todir="./build"/>
+        <copy file="./assets/W.png" todir="./build"/>
+        <mkdir dir="./weaveJar"/>
+        <jar destfile="weaveJar/weave.jar" basedir="./build">
+            <manifest>
+                <attribute name="Main-Class" value="Main"/>
+            </manifest>
+            <zipfileset dir="./build/"/>
+            <zipfileset src="./build/jfoenix-9.0.10.jar"/>
+            <zipfileset src="./build/reactfx-2.0-M5.jar"/>
+            <zipfileset src="./build/javafx.graphics.jar"/>
+            <zipfileset src="./build/richtextfx-0.11.2.jar"/>
+            <zipfileset src="./build/javafx-swt.jar"/>
+            <zipfileset src="./build/javafx.base.jar"/>
+            <zipfileset src="./build/javafx.controls.jar"/>
+            <zipfileset src="./build/javafx.fxml.jar"/>
+            <zipfileset src="./build/javafx.media.jar"/>
+            <zipfileset src="./build/javafx.swing.jar"/>
+            <zipfileset src="./build/javafx.web.jar"/>
+            <zipfileset src="./build/jfoenix-9.0.10.jar"/>
+            <zipfileset src="./build/undofx-2.1.1.jar"/>
+            <zipfileset src="./build/flowless-0.7.1.jar"/>
+            <zipfileset src="./build/wellbehavedfx-0.3.3.jar"/>
+
+            <zipfileset src="./build/libavplugin-54.so"/>
+            <zipfileset src="./build/libavplugin-56.so"/>
+            <zipfileset src="./build/libavplugin-57.so"/>
+            <zipfileset src="./build/libavplugin-ffmpeg-56.so"/>
+            <zipfileset src="./build/libavplugin-ffmpeg-57.so"/>
+            <zipfileset src="./build/libavplugin-ffmpeg-58.so"/>
+            <zipfileset src="./build/libavplugin-ffmpeg-59.so"/>
+            <zipfileset src="./build/libavplugin-ffmpeg-60.so"/>
+            <zipfileset src="./build/libdecora_sse.so"/>
+            <zipfileset src="./build/libfxplugins.so"/>
+            <zipfileset src="./build/libglass.so"/>
+            <zipfileset src="./build/libglassgtk3.so"/>
+            <zipfileset src="./build/libgstreamer-lite.so"/>
+            <zipfileset src="./build/libjavafx_font.so"/>
+            <zipfileset src="./build/libjavafx_font_freetype.so"/>
+            <zipfileset src="./build/libjavafx_font_pango.so"/>
+            <zipfileset src="./build/libjavafx_iio.so"/>
+            <zipfileset src="./build/libjfxmedia.so"/>
+            <zipfileset src="./build/libjfxwebkit.so"/>
+            <zipfileset src="./build/libprism_common.so"/>
+            <zipfileset src="./build/libprism_es2.so"/>
+            <zipfileset src="./build/libprism_sw.so"/>
+
+        </jar>
+        <copy file="./lib/weave_native.dll" todir="./weaveJar"/>
+        <copy file="weave_shared.py" todir="./weaveJar"/>
+
     </target>
 </project>
